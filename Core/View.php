@@ -90,4 +90,5 @@ abstract class View {
 	 */
 	protected function _runAfterFill() {}
 }
+
 ?>
