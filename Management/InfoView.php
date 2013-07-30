@@ -3,7 +3,7 @@ require_once AYA_DIR.DS.'Core/View.php';
 require_once AYA_DIR.DS.'Xhtml/Form/XhtmlForm.php';
 
 class InfoView extends View {
-  
+	
 	public function fill() {
 		// startowe dzialanie
 		$this->_runBeforeFill();

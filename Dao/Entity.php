@@ -7,7 +7,7 @@
  *
  */
 class Entity {
-  
+	
 	/**
 	 * identyfikator ogolnego obiektu
 	 * 

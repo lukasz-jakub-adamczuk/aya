@@ -8,7 +8,7 @@
  */
 class Router {
 
-  /**
+	/**
 	 * zwraca obiekt kontrolera
 	 * 
 	 * @return Controller $oController
@@ -39,10 +39,10 @@ class Router {
 			
 			$oController->setModelName($oController->getCtrlName().$oController->getActionName());
 			$oController->setViewName($oController->getCtrlName().$oController->getActionName());
-			if (file_exists(TPL_DIR.DS.THEME_DIR.$oController->getCtrlName('lower').'-'.$oController->getActionName('lower').'.tpl')) {
+			if (file_exists(TPL_DIR.DS.THEME_DIR.DS.$oController->getCtrlName('lower').'-'.$oController->getActionName('lower').'.tpl')) {
 				$oController->setTemplateName($oController->getCtrlName('lower').'-'.$oController->getActionName('lower'));
 			} else {
-				if (file_exists(TPL_DIR.DS.THEME_DIR.'all-'.$oController->getActionName('lower').'.tpl')) {
+				if (file_exists(TPL_DIR.DS.THEME_DIR.DS.'all-'.$oController->getActionName('lower').'.tpl')) {
 					$oController->setTemplateName('all-'.$oController->getActionName('lower'));
 				} else {
 					$oController->setTemplateName('all-index');
@@ -52,7 +52,7 @@ class Router {
 			if (file_exists(CTRL_DIR.DS.'ErrorController.php')) {
 				require_once CTRL_DIR.DS.'ErrorController.php';
 			} else {
-				require_once ASH_LIB_DIR.DS.'Core/ErrorController.php';
+				require_once AYA_DIR.DS.'Core/ErrorController.php';
 			}
 			$oController = new ErrorController;
 		}

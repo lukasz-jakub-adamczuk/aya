@@ -6,7 +6,7 @@
  *
  */
 abstract class View {
-  
+	
 	/**
 	 * nazwa widoku
 	 * 
@@ -90,5 +90,4 @@ abstract class View {
 	 */
 	protected function _runAfterFill() {}
 }
-
 ?>

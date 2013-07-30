@@ -10,7 +10,7 @@ require_once AYA_DIR.DS.'Core/Paginator.php';
  */
 class Collection {
 
-  /**
+	/**
 	 * nazwa (teoretycznie klasa)
 	 * 
 	 * @var string
@@ -284,18 +284,13 @@ class Collection {
 	}
 	
 	public function navSet($sName, $mValue) {
-		$this->_aNavigator[$sName] = $mValue;
-		if ($mValue === '' || $mValue === 'null') {
-		    // none
-		} else {
-		    $this->_aWhere[] = ''.$sName.'="'.$mValue.'"';
-		}
+		Navigator::set($sName, $mValue);
 	}
 	
 	public function navDefault($sName, $mValue) {
-		if (isset($this->_aNavigator[$sName]) === false) {
-			$this->_aNavigator[$sName] = $mValue;
-		}
+	    if (Navigator::is($sName) === false) {
+	        Navigator::set($sName, $mValue);
+	    }
 	}
 
 	/**
@@ -431,10 +426,21 @@ class Collection {
 	 * @return $this
 	 */
 	public function orderby($sOrder = 'name', $sDirection = 'ASC') {
+	    $aParts = explode('-', $sOrder);
+	    //var_dump(strpos($this->_sTable, $aParts[0]));
+	    
+	    //echo $sOrder;
+	    
+	    //if (strpos($this->_sTable, $aParts[0]) !== false) {
+	        $sSort = '`'.str_replace('_', '`.`', $sOrder).'`';
+	    //} else {
+	      //  $sSort = '`'.$this->_sTable.'`.`'.$sOrder.'`';
+	    //}
+	    
 		if ($sDirection == 'DESC' || $sDirection == 'desc') {
-			$this->_sOrder = ' ORDER BY `'.$this->_sTable.'`.`'.$sOrder.'` DESC';			
+			$this->_sOrder = ' ORDER BY '.$sSort.' DESC';			
 		} else {
-			$this->_sOrder = ' ORDER BY `'.$this->_sTable.'`.`'.$sOrder.'`';
+			$this->_sOrder = ' ORDER BY '.$sSort.'';
 		}
 		$this->_aNavigator['sort'] = $sOrder;
 		$this->_aNavigator['order'] = $sDirection;
@@ -454,19 +460,35 @@ class Collection {
 	}
 	
 	protected function _defaultNavigator() {
-	    if (isset($this->_aNavigator['size'])) {
+	    /*if (isset($this->_aNavigator['size'])) {
 	        //$this->_iPageSize = $this->_aNavigator['size'];
 	    }
 	    if (isset($_SESSION[$_GET['ctrl']]['index']['size'])) {
 	        $this->_iPageSize = $_SESSION[$_GET['ctrl']]['index']['size'];
 	    }
 	    if (isset($this->_aNavigator['sort'])) {
+	        $sSort = '`'.str_replace('-', '`.`', $this->_aNavigator['sort']).'`';
 	        if (isset($this->_aNavigator['order'])) {
-	            $this->_sOrder = ' ORDER BY `'.$this->_sTable.'`.`'.$this->_aNavigator['sort'].'` '.$this->_aNavigator['order'];
+	            $this->_sOrder = ' ORDER BY '.$sSort.' '.$this->_aNavigator['order'];
 	        } else {
     	        $this->_sOrder = ' ORDER BY `'.$this->_sTable.'`.`'.$this->_aNavigator['sort'].'` ASC';
 	        }
-	    }
+	    }*/
+	    
+	    /*
+		if ($mValue === '' || $mValue === 'null') {
+		    // none
+		} else {
+		    $this->_aWhere[] = ''.$sName.'="'.$mValue.'"';
+		}*/
+		
+		if (Navigator::is('sort')) {
+            if (Navigator::is('order')) {
+                $this->orderby(Navigator::get('sort'), Navigator::get('order'));
+            } else {
+                $this->orderby(Navigator::get('sort'));
+            }
+        }
 	}
 	
 	/**

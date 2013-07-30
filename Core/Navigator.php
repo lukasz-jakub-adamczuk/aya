@@ -4,14 +4,24 @@
 class Navigator {
 
     protected static $_sOwner;
-  
+	
 	public static function set($sName, $mValue) {
-        $_SESSION['_nav_'][$sOwner][$sName] = $mValue;
+        $_SESSION['_nav_'][self::$_sOwner][$sName] = $mValue;
 	}
 	
 	public static function get($sName) {
-	    if (isset($_SESSION['_nav_'][$sOwner][$sName])) {
-            return $_SESSION['_nav_'][$sOwner][$sName];
+	    if (self::is($sName)) {
+            return $_SESSION['_nav_'][self::$_sOwner][$sName];
+        } else {
+            return false;
+        }
+	}
+	
+	public static function is($sName) {
+	    if (isset($_SESSION['_nav_'][self::$_sOwner][$sName])) {
+            return true;
+        } else {
+            return false;
         }
 	}
 	
@@ -25,4 +35,3 @@ class Navigator {
 	
 }
 
-?>

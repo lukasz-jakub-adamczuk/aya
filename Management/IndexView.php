@@ -1,8 +1,9 @@
 <?php
-require_once ASH_LIB_DIR.DS.'Core/View.php';
-require_once ASH_LIB_DIR.DS.'Core/Dao.php';
+require_once AYA_DIR.'/Core/View.php';
+require_once AYA_DIR.'/Core/Dao.php';
 
-require_once ASH_LIB_DIR.DS.'Xhtml/Table/KXhtmlTable.php';
+//require_once AYA_DIR.'/Xhtml/Table/AyaXhtmlTable.php';
+require_once AYA_DIR.'/../XhtmlTable/Aya/Xhtml/Table/AyaXhtmlTable.php';
 
 /**
  * abstrakcyjna klasa widoku
@@ -15,7 +16,7 @@ class IndexView extends View {
     protected function _getFilters() {
         return false;
     }
-  
+	
 	/**
 	 * podstawowe dzialania widoku
 	 * 
@@ -55,13 +56,13 @@ class IndexView extends View {
 		} else {
 			$iPage = 1;
 		}
-		$sSearch = isset($_REQUEST['nav']['title']) ? $_REQUEST['nav']['sea'] : null;
+		$sSearch = isset($_REQUEST['nav']['search']) ? $_REQUEST['nav']['search'] : null;
 		
 		$sWhere = isset($_REQUEST['nav']['id_offer']) ? $_REQUEST['nav']['id_offer'] : null;
 		
 		
 		
-		print_r($_SESSION);
+//		print_r($_SESSION);
 		
 		
 		if ($sWhere) {
@@ -86,20 +87,23 @@ class IndexView extends View {
         $oIndexCollection = Dao::collection($this->_sDaoName);
         
         
+        //$oIndexCollection->limit(7);
         
         $aFilters = $this->_getFilters();
+        
+//        print_r($aFilters);
         
         foreach ($aFilters as $name => $filter) {
             if (isset($_SESSION['_nav_'][$_GET['ctrl']][$_GET['act']][$name])) {
                 if ($name == 'search' && $_SESSION['_nav_'][$_GET['ctrl']][$_GET['act']][$name] != '') {
                     $oIndexCollection->search($this->_sDaoIndex.'.`title`', $sSearch);
                 } else {
-                $aFilters[$name]['selected'] = $_SESSION['_nav_'][$_GET['ctrl']][$_GET['act']][$name];
-                if (substr($name, 0, 3) == 'id_') {
-                    $oIndexCollection->navSet($this->_sDaoIndex.'.'.$name, $_SESSION['_nav_'][$_GET['ctrl']][$_GET['act']][$name]);
-                } else {
-                    $oIndexCollection->navSet($name, $_SESSION['_nav_'][$_GET['ctrl']][$_GET['act']][$name]);
-                }
+                    $aFilters[$name]['selected'] = $_SESSION['_nav_'][$_GET['ctrl']][$_GET['act']][$name];
+                    if (substr($name, 0, 3) == 'id_') {
+                        $oIndexCollection->navSet($this->_sDaoIndex.'.'.$name, $_SESSION['_nav_'][$_GET['ctrl']][$_GET['act']][$name]);
+                    } else {
+                        $oIndexCollection->navSet($name, $_SESSION['_nav_'][$_GET['ctrl']][$_GET['act']][$name]);
+                    }
                 }
             }
         }
@@ -120,6 +124,7 @@ class IndexView extends View {
 		
 		$oIndexCollection->navDefault('sort', 'idx');
 		$oIndexCollection->navDefault('order', 'asc');
+		
         
         if (isset($iSize)) {
             $oIndexCollection->setPageSize($iSize);
@@ -127,16 +132,35 @@ class IndexView extends View {
 
         
         $oIndexCollection->get($iPage);
-
-		
-        KXhtmlTable::setCacheDir(APP_DIR.DS.'tmp');
-		
-        KXhtmlTable::configure($sLowerDashCtrlName);
         
-        KXhtmlTable::setDataset($oIndexCollection->getRows(), null, $oIndexCollection->getNavigator());
+        
+        
+        require_once __DIR__ . '/../../XhtmlTable/Aya/Yaml/AyaYamlLoader.php';
+        
+        $file = APP_DIR . '/conf/layout/tables/'.$sLowerDashCtrlName.'.yml';
+        $aConfig = AyaYamlLoader::parse($file);
+
+        
+        $oAyaXhtmlTable = new AyaXhtmlTable();
+		
+//        $oAyaXhtmlTable->setCacheDir(APP_DIR.DS.'tmp');
+
+        $oAyaXhtmlTable->setSortLink('/'.$sLowerDashCtrlName);
+		
+        $oAyaXhtmlTable->configure($aConfig);
+        
+        $file = APP_DIR . '/langs/pl/tables/common.yml';
+        $aGlobalTexts = AyaYamlLoader::parse($file);
+        
+        $file = APP_DIR . '/langs/pl/tables/'.$sLowerDashCtrlName.'.yml';
+        $aLocalTexts = AyaYamlLoader::parse($file);
+        
+        $oAyaXhtmlTable->translate($aGlobalTexts, $aLocalTexts);
+        
+        $oAyaXhtmlTable->assign($oIndexCollection->getRows(), $oIndexCollection->getNavigator());
 
 		// ostateczne wyslanie danych do szablonu
-		$this->_oRenderer->assign('sTable', KXhtmlTable::render());
+		$this->_oRenderer->assign('sTable', $oAyaXhtmlTable->render());
 		$this->_oRenderer->assign('sPaginator', $oIndexCollection->getPaginator('archive'));
 		$this->_oRenderer->assign('aNavigator', $oIndexCollection->getNavigator());
 	}
@@ -151,3 +175,4 @@ class IndexView extends View {
 	}
 }
 ?>
+
