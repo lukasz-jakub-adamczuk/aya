@@ -125,6 +125,13 @@ class IndexView extends View {
 		$oIndexCollection->navDefault('sort', 'idx');
 		$oIndexCollection->navDefault('order', 'asc');
 		
+		if (isset($_GET['nav']['sort'])) {
+		    $oIndexCollection->navSet('sort', $_GET['nav']['sort']);
+		}
+		if (isset($_GET['nav']['order'])) {
+		    $oIndexCollection->navSet('order', $_GET['nav']['order']);
+		}
+		
         
         if (isset($iSize)) {
             $oIndexCollection->setPageSize($iSize);
