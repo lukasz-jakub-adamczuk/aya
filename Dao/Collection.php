@@ -59,7 +59,7 @@ class Collection {
 	 * 
 	 * @var array
 	 */
-	protected $_aQueryFields = array();
+	protected $_aQueryFields = array('*');
 	
 	protected $_aConditions = array();
 
@@ -210,12 +210,7 @@ class Collection {
 	 * @return string
 	 */
 	private function _getFields() {
-		if ($this->_aQueryFields != null) {
-			$sQueryFields = implode(',', $this->_aQueryFields);
-		} else {
-			$sQueryFields = '*';
-		}
-		return $sQueryFields;
+		return implode(',', $this->_aQueryFields);
 	}
 	
 	/**
@@ -426,6 +421,8 @@ class Collection {
 	    
 	    //var_dump($this->_sJoin);
 	    
+	    print_r($this->_getFields());
+	    
 	    if ($this->_sJoin) {
 	        
 	    }
@@ -434,6 +431,9 @@ class Collection {
 	    } else {
 	        $sSort = '`'.$sOrder.'`';
 	    }
+	    
+	    $sSort = 'offer.idx';
+	    //$sSort = '`'.$this->_sTable.'`.`'.$sOrder.'`';
 	    
 	    
 	    
