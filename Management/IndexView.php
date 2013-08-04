@@ -84,7 +84,8 @@ class IndexView extends View {
 		
 		
 		// kolekcja
-        $oIndexCollection = Dao::collection($this->_sDaoName);
+        $oIndexCollection = Dao::collection($this->_sDaoName, Navigator::getOwner());
+        
         
         
         //$oIndexCollection->limit(7);

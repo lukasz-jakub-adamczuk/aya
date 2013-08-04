@@ -17,6 +17,8 @@ class Collection {
 	 */
 	protected $_sName;
 	
+	protected $_sOwner;
+	
 	/**
 	 * nazwa tabeli
 	 * 
@@ -122,6 +124,9 @@ class Collection {
 	    // nazwa tabeli
 	    $this->_sTable = $this->_getName('underscore');
 	    //$this->_aNavigator = Navigator::getOwner();
+	    if ($sNavigatorOwner) {
+	        $this->_sOwner = $sNavigatorOwner;
+	    }
 		$this->_db = Db::getInstance();
 	}
 	
@@ -421,18 +426,40 @@ class Collection {
 	    
 	    //var_dump($this->_sJoin);
 	    
-	    print_r($this->_getFields());
+//	    print_r($this->_aQueryFields);
+	    
+	    // default sorting by table fields
+	    $sSort = '`'.$this->_sTable.'`.`'.$sOrder.'`';
+	    
+	    // sorting by fields form joined table
+	    foreach ($this->_aQueryFields as $fk => $field) {
+	        if (strpos($field, ' AS ') !== false) {
+	            $aParts = explode(' AS ', $field);
+	            echo str_replace('-', '_', $sOrder);
+	            echo trim($aParts[1]);
+	            if (str_replace('-', '_', $sOrder) == trim($aParts[1])) {
+	                $sSort = trim($aParts[0]);
+	            }
+	        }
+	    }
+	    
+	    echo $sSort;
+	    
+	    if ($sSort) {
+	        
+	    }
 	    
 	    if ($this->_sJoin) {
 	        
 	    }
+	    /*
 	    if (in_array(str_replace('-', '.', $sOrder), $this->_aQueryFields)) {
 	        $sSort = '`'.$this->_sTable.'`.`'.$sOrder.'`';
 	    } else {
 	        $sSort = '`'.$sOrder.'`';
-	    }
+	    }*/
 	    
-	    $sSort = 'offer.idx';
+//	    $sSort = 'offer.idx';
 	    //$sSort = '`'.$this->_sTable.'`.`'.$sOrder.'`';
 	    
 	    
@@ -464,11 +491,13 @@ class Collection {
 	
 	protected function _defaultNavigator() {
 	    // sorting and ordering
-		if (Navigator::is('sort')) {
-            if (Navigator::is('order')) {
-                $this->orderby(Navigator::get('sort'), Navigator::get('order'));
-            } else {
-                $this->orderby(Navigator::get('sort'));
+	    if ($this->_sOwner === Navigator::getOwner()) {
+		    if (Navigator::is('sort')) {
+                if (Navigator::is('order')) {
+                    $this->orderby(Navigator::get('sort'), Navigator::get('order'));
+                } else {
+                    $this->orderby(Navigator::get('sort'));
+                }
             }
         }
 	}
