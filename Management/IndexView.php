@@ -142,6 +142,8 @@ class IndexView extends View {
         $oIndexCollection->get($iPage);
         
         
+        print_r($oIndexCollection->getNavigator());
+        
         
         require_once __DIR__ . '/../../XhtmlTable/Aya/Yaml/AyaYamlLoader.php';
         

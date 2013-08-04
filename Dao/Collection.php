@@ -226,10 +226,9 @@ class Collection {
 	 * @return string
 	 */
 	public function getPaginator($sMode = 'prev-next') {
-		//$oPaginator = new Paginator($this->_sTable, $this->_getShortClassName('lower'), $this->_iPageSize, $this->_getShortClassName('dashed').'/index');
-		$oPaginator = new Paginator($this->_sTable, $this->_getName('underscore'), $this->_iPageSize, './'.$this->_getName('dash').'');
-		//return $oPaginator->configure($sMode, $this->_sJoin.' '.$this->_sWhere)->generate();
-		return $oPaginator->configure($sMode, $this->getWhere(), $this->_aNavigator['total'])->generate();
+		$oPaginator = new Paginator($this->_aNavigator);
+
+		return $oPaginator->configure($sMode, './'.$this->_getName('dash').'')->generate();
 	}
 	
 	/**
@@ -422,12 +421,6 @@ class Collection {
 	 * @return $this
 	 */
 	public function orderby($sOrder = 'name', $sDirection = 'ASC') {
-	    $aParts = explode('-', $sOrder);
-	    
-	    //var_dump($this->_sJoin);
-	    
-//	    print_r($this->_aQueryFields);
-	    
 	    // default sorting by table fields
 	    $sSort = '`'.$this->_sTable.'`.`'.$sOrder.'`';
 	    
@@ -443,35 +436,13 @@ class Collection {
 	        }
 	    }
 	    
-	    echo $sSort;
-	    
-	    if ($sSort) {
-	        
-	    }
-	    
-	    if ($this->_sJoin) {
-	        
-	    }
-	    /*
-	    if (in_array(str_replace('-', '.', $sOrder), $this->_aQueryFields)) {
-	        $sSort = '`'.$this->_sTable.'`.`'.$sOrder.'`';
-	    } else {
-	        $sSort = '`'.$sOrder.'`';
-	    }*/
-	    
-//	    $sSort = 'offer.idx';
-	    //$sSort = '`'.$this->_sTable.'`.`'.$sOrder.'`';
-	    
-	    
-	    
-
-        //$sOrder = '`'.str_replace('_', '`.`', $sOrder).'`';
-	    
+	    // sorting direction
 		if ($sDirection == 'DESC' || $sDirection == 'desc') {
 			$this->_sOrder = ' ORDER BY '.$sSort.' DESC';			
 		} else {
 			$this->_sOrder = ' ORDER BY '.$sSort.'';
 		}
+		
 		$this->_aNavigator['sort'] = $sOrder;
 		$this->_aNavigator['order'] = $sDirection;
 		return $this;
