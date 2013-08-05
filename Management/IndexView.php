@@ -26,20 +26,8 @@ class IndexView extends View {
 		// startowe dzialanie
     	$this->_runBeforeFill();
 		
-		// ustawienie numeru aktualnej strony dla kolekcji
-		
-        // TODO move to Navigator class
-        if (isset($_POST['nav'])) {
-            foreach ($_POST['nav'] as $key => $val) {
-                $_SESSION['_nav_'][$_GET['ctrl']][$_GET['act']][$key] = $val;
-            }
-        }
+		Navigator::init();
         
-		// podstawowe dzialanie widoku
-		if (isset($_GET['nav']['size'])) {
-			$iSize = $_GET['nav']['size'];
-			$_SESSION[$_GET['ctrl']][$_GET['act']]['size'] = $_GET['nav']['size'];
-		}
 		
 		if (isset($_GET['nav']['page'])) {
 			$iPage = $_GET['nav']['page'];
@@ -56,43 +44,22 @@ class IndexView extends View {
 		} else {
 			$iPage = 1;
 		}
+		// search field condition
 		$sSearch = isset($_REQUEST['nav']['search']) ? $_REQUEST['nav']['search'] : null;
 		
 		$sWhere = isset($_REQUEST['nav']['id_offer']) ? $_REQUEST['nav']['id_offer'] : null;
 		
 		
-		
-//		print_r($_SESSION);
-		
-		
-		if ($sWhere) {
-			$_SESSION['where'] = $sWhere;
-		}
-		
-	
-		// pseudo reset filtra
-		if (isset($_REQUEST['nav']['id_offer']) && empty($_REQUEST['nav']['id_offer'])) {
-			$_SESSION['where'] = '';
-		}
-		
-		if (isset($_SESSION['where'])) {
-			$sWhere = $_SESSION['where'];
-		}
-		
-		//echo $this->_sDaoName;
-		//echo $this->_sDaoIndex;
-		
-		
 		// kolekcja
         $oIndexCollection = Dao::collection($this->_sDaoName, Navigator::getOwner());
-        
-        
         
         //$oIndexCollection->limit(7);
         
         $aFilters = $this->_getFilters();
         
-//        print_r($aFilters);
+        //print_r($aFilters);
+        
+        //print_r($_SESSION);
         
         foreach ($aFilters as $name => $filter) {
             if (isset($_SESSION['_nav_'][$_GET['ctrl']][$_GET['act']][$name])) {
@@ -108,15 +75,6 @@ class IndexView extends View {
                 }
             }
         }
-        /*
-        foreach ($aFilters['visible']['options'] as $fok => $fo) {
-            if ($fok === 'null') {
-                echo 'null';
-            } else {
-                echo 'rozny od null';
-            }
-        }
-        */
         
         $this->_oRenderer->assign('aFilters', $aFilters);
         
@@ -134,13 +92,11 @@ class IndexView extends View {
 		}
 		
         
-        if (isset($iSize)) {
-            $oIndexCollection->setPageSize($iSize);
-        }
-
         
+        // get records
         $oIndexCollection->get($iPage);
         
+        print_r(Navigator::load());
         
         print_r($oIndexCollection->getNavigator());
         

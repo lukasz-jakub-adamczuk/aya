@@ -31,7 +31,7 @@ class Collection {
 	 * 
 	 * @var int
 	 */
-	protected $_iPageSize = 5;
+	protected $_iSize = 5;
 
 	/**
 	 * nawigacja dla zapytania
@@ -123,7 +123,6 @@ class Collection {
 	    $this->_sName = $sName === null ? str_replace('Collection', '', get_class($this)) : $sName;
 	    // nazwa tabeli
 	    $this->_sTable = $this->_getName('underscore');
-	    //$this->_aNavigator = Navigator::getOwner();
 	    if ($sNavigatorOwner) {
 	        $this->_sOwner = $sNavigatorOwner;
 	    }
@@ -168,25 +167,12 @@ class Collection {
 	 * @return unknown_type
 	 */
 	public function get($iPage = 1) {
-		if ($iPage === 'All') {
-			$this->_iPageSize = 'All';
+		if ($iPage === -1) {
+			$this->_iSize = -1;
 		}
 		$this->_aNavigator['page'] = $iPage;
-//		$_SESSION[$_GET['controller']][$_GET['action']]['start'] = $iPage;
 		
-		
-		if (SQL_CACHE_ENABLED) {
-			if (Cache::exist($this->_getShortClassName('lower').'/aRecent'.$this->_iPageSize.Cache::childrenName($this->_getShortClassName()).$this->_aNavigator['page'])) {
-				$this->_aRows = Cache::restore($this->_getShortClassName('lower').'/aRecent'.$this->_iPageSize.Cache::childrenName($this->_getShortClassName()).$this->_aNavigator['page']);
-			} else {
-				$this->_getCollection();
-				Cache::save($this->_getShortClassName('lower').'/aRecent'.$this->_iPageSize.Cache::childrenName($this->_getShortClassName()).$this->_aNavigator['page'], $this->_aRows);
-				//return $this->_aRows;
-			}
-		} else {
-			$this->_getCollection();
-			//return $this->_aRows;
-		}
+		$this->_getCollection();
 	}
 	
 	/**
@@ -202,10 +188,10 @@ class Collection {
 	/**
 	 * ustawia liczbe wynikow na stronie
 	 * 
-	 * @param $iPageSize rozmiar strony
+	 * @param $iSize rozmiar strony
 	 */
-	public function setPageSize($iPageSize) {
-		$this->_iPageSize = $iPageSize;
+	public function setPageSize($iSize) {
+		$this->_iSize = $iSize;
 	}
 
 	/**
@@ -243,7 +229,6 @@ class Collection {
 	}
 	
 	public function getRow() {
-//		return $this->_aRows[current(array_keys($this->_aRows))];
 		return current($this->_aRows);
 	}
 	
@@ -256,8 +241,8 @@ class Collection {
 		return $this->_aRows;
 	}
 	
-	public function getColumn($sColumn = 'name', $sPage = 'All') {
-	    $this->get($sPage);
+	public function getColumn($sColumn = 'name', $iPage = -1) {
+	    $this->get($iPage);
 	    $aColumn = array();
 	    foreach ($this->_aRows as $rows => $row) {
 	        $aColumn[$rows] = $row[$sColumn];
@@ -340,7 +325,7 @@ class Collection {
 			$this->_sWhere .= ' WHERE ';
 		}
 		$this->_sWhere .= ''.$sField.' '.$mOperator.' "'.$mValue.'"';
-		$this->_aNavigator[$sField] = $mValue;
+		
 		return $this;
 	}
 	
@@ -359,7 +344,6 @@ class Collection {
 		} else {
 			$this->_sWhere .= ' OR '.$sField.' '.$mOperator.' "'.$mValue.'"';
 		}
-		$this->_aNavigator[$sField] = $mValue;
 		return $this;
 	}
 	
@@ -378,7 +362,7 @@ class Collection {
 		} else {
 			$this->_sWhere .= ' AND '.$sField.' '.$mOperator.' "'.$mValue.'"';
 		}
-		$this->_aNavigator[$sField] = $mValue;
+		
 		return $this;
 	}
 	
@@ -390,12 +374,10 @@ class Collection {
 	 * @return $this
 	 */
 	public function search($sField, $mValue) {
-		//$this->where($sField, '%'.$mValue.'%', 'LIKE');
 		$this->_sWhere .= ' WHERE '.$sField.' LIKE "%'.$mValue.'%"';
 	
 		$this->_aWhere[] = ''.$sField.' LIKE "%'.$mValue.'%"';
-		
-		$this->_aNavigator['search'] = $mValue;
+
 		return $this;
 	}
 
@@ -428,8 +410,6 @@ class Collection {
 	    foreach ($this->_aQueryFields as $fk => $field) {
 	        if (strpos($field, ' AS ') !== false) {
 	            $aParts = explode(' AS ', $field);
-	            echo str_replace('-', '_', $sOrder);
-	            echo trim($aParts[1]);
 	            if (str_replace('-', '_', $sOrder) == trim($aParts[1])) {
 	                $sSort = trim($aParts[0]);
 	            }
@@ -443,8 +423,6 @@ class Collection {
 			$this->_sOrder = ' ORDER BY '.$sSort.'';
 		}
 		
-		$this->_aNavigator['sort'] = $sOrder;
-		$this->_aNavigator['order'] = $sDirection;
 		return $this;
 	}
 	
@@ -452,12 +430,23 @@ class Collection {
 	 * ustawia limit wynikow na stronie
 	 * potrzebny to ustawienia LIMIT w select()
 	 * 
-	 * @param $iPageSize liczba wynikow na stronie
+	 * @param $iSize liczba wynikow na stronie
 	 * @return $this
 	 */
-	public function limit($iPageSize) {
-		$this->_iPageSize = $iPageSize;
+	public function limit($iSize) {
+		$this->_iSize = $iSize;
 		return $this;
+	}
+	
+	
+	protected function _loadNavigator() {
+	    $this->_aNavigator = Navigator::load();
+	    if (isset($this->_aNavigator['size'])) {
+	        $this->_iSize = $this->_aNavigator['size'];
+	    }
+	    if (isset($this->_aNavigator['page'])) {
+	        $this->_iPage = $this->_aNavigator['page'];
+	    }
 	}
 	
 	protected function _defaultNavigator() {
@@ -480,41 +469,35 @@ class Collection {
 	 * @param $start numer podstrony z wynikami
 	 */
 	public function select($iPage = 1) {
-	    $this->_defaultNavigator();
-	    //$iPage = $this->_aNavigator['page'];
-		if ($this->_iPageSize == 'All' ) {
-			$this->_aNavigator['page'] = 0;
-			$this->_aNavigator['size'] = null;
+	    // load values from session storage
+	    $this->_loadNavigator();
+	    
+		if ($this->_iSize === -1) {
 			$sLimit = '';
 		} else {
 			$iPage = $iPage > 0 ? $iPage-1 : 0;
-			//$this->_aNavigator['page'] = ($iPage) * $this->_iPageSize;
-			$this->_aNavigator['page'] = $iPage;
-			$this->_aNavigator['size'] = $this->_iPageSize;
-			$sLimit = ' LIMIT '.($iPage) * $this->_iPageSize.','.$this->_iPageSize;
+			$sLimit = ' LIMIT '.($iPage) * $this->_iSize.','.$this->_iSize;
     	}
 		
-		
-		$this->_sQuery = 'SELECT '.$this->_getFields().' FROM '.$this->_sTable.''.$this->_sJoin.''.$this->getWhere().''.$this->_sGroup.''.$this->_sOrder.''.$sLimit.'';
+		$this->_sQuery = 'SELECT '.$this->_getFields().' FROM '.$this->_sTable.''.$this->_sJoin.''.$this->_getWhere().''.$this->_sGroup.''.$this->_sOrder.''.$sLimit.'';
 		$this->echoQuery();
 		$this->_aRows = $this->_db->getArray($this->_sQuery, 'id_'.$this->_sTable);
 		
 		// total
-		if ($this->_iPageSize == 'All' ) {
+		if ($this->_iSize === -1) {
 		    $this->_aNavigator['total'] = count($this->_aRows);
 		} else {
-		    //$this->_aNavigator['total'] = 111;
 		    $this->_aNavigator['total'] = $this->getCount();
 		}
 	}
 	
 	public function getCount() {
-	    $this->_sQuery = 'SELECT COUNT(id_'.$this->_sTable.') AS total FROM '.$this->_sTable.''.$this->_sJoin.''.$this->getWhere().''.$this->_sGroup.''.$this->_sOrder.'';
+	    $this->_sQuery = 'SELECT COUNT(id_'.$this->_sTable.') AS total FROM '.$this->_sTable.''.$this->_sJoin.''.$this->_getWhere().''.$this->_sGroup.''.$this->_sOrder.'';
 	    //$this->echoQuery();
 		return $this->_db->getOne($this->_sQuery, 'total');
 	}
 	
-	public function getWhere() {
+	private function _getWhere() {
 	    $sWhere = '';
 	    if (!empty($this->_aWhere)) {
 	        $sWhere = ' WHERE ';

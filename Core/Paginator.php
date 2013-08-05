@@ -72,7 +72,7 @@ class Paginator {
 		$sPreLink .= '/page/';
 		
 		
-		$iStart = $this->_iPage + 1;
+		$iStart = $this->_iPage;
 
 		if ($this->_iTotal > $this->_iPageSize) {
 			$this->_sPagination = '<ul class="fr links pagination">';
