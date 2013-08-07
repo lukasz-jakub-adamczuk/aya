@@ -170,7 +170,6 @@ class Collection {
 		if ($iPage === -1) {
 			$this->_iSize = -1;
 		}
-		$this->_aNavigator['page'] = $iPage;
 		
 		$this->_getCollection();
 	}
@@ -376,8 +375,6 @@ class Collection {
 	public function search($sField, $mValue) {
 		$this->_sWhere .= ' WHERE '.$sField.' LIKE "%'.$mValue.'%"';
 	
-		$this->_aWhere[] = ''.$sField.' LIKE "%'.$mValue.'%"';
-
 		return $this;
 	}
 
@@ -441,11 +438,25 @@ class Collection {
 	
 	protected function _loadNavigator() {
 	    $this->_aNavigator = Navigator::load();
+	    
 	    if (isset($this->_aNavigator['size'])) {
 	        $this->_iSize = $this->_aNavigator['size'];
 	    }
 	    if (isset($this->_aNavigator['page'])) {
 	        $this->_iPage = $this->_aNavigator['page'];
+	    }
+	    if (isset($this->_aNavigator['search']) && $this->_aNavigator['search'] != '') {
+	        $this->_aWhere[] = ''.$sField.' LIKE "%'.$this->_aNavigator['search'].'%"';
+	    }
+	    
+	    $aReserved = array('page', 'size', 'sort', 'order', 'search');
+	    
+	    foreach ($this->_aNavigator as $key => $val) {
+	        if (!in_array($key, $aReserved)) {
+	            if ($val !== 'null') {
+    	            $this->_aWhere[] = $key.'="'.$val.'"';
+	            }
+	        }
 	    }
 	}
 	
@@ -499,6 +510,7 @@ class Collection {
 	
 	private function _getWhere() {
 	    $sWhere = '';
+	    //print_r($this->_aWhere);
 	    if (!empty($this->_aWhere)) {
 	        $sWhere = ' WHERE ';
 	        $sWhere .= implode(' AND ', $this->_aWhere);

@@ -9,13 +9,13 @@ class Navigator {
         // retrive data from get
         if (isset($_GET['nav'])) {
             foreach ($_GET['nav'] as $key => $val) {
-                $_SESSION['_nav_'][self::$_sOwner][$key] = $val;
+                $_SESSION['_nav_'][self::$_sOwner][$key] = $val !== 'null' ? $val : 'null';
             }
         }
         // retrive data from post
         if (isset($_POST['nav'])) {
             foreach ($_POST['nav'] as $key => $val) {
-                $_SESSION['_nav_'][self::$_sOwner][$key] = $val;
+                $_SESSION['_nav_'][self::$_sOwner][$key] = $val !== 'null' ? $val : 'null';
             }
         }
     }

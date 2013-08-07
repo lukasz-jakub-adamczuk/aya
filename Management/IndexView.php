@@ -28,22 +28,6 @@ class IndexView extends View {
 		
 		Navigator::init();
         
-		
-		if (isset($_GET['nav']['page'])) {
-			$iPage = $_GET['nav']['page'];
-			$_SESSION[$_GET['ctrl']][$_GET['act']]['page'] = $_GET['nav']['page'];
-		} elseif (isset($_SESSION[$_GET['ctrl']][$_GET['act']]['page'])) {
-			// jesli istnieje zapamietana strona
-			// to moze byc dla niej wynikow w przypadku wyszukiwania
-			// dlatego zawsze ustawiana jest pierwsza strona wynikow
-			if (isset($_POST['nav']['search'])) {
-				$iPage = $_SESSION[$_GET['ctrl']][$_GET['act']]['page'] = 1;
-			} else {
-				$iPage = $_SESSION[$_GET['ctrl']][$_GET['act']]['page'];
-			}
-		} else {
-			$iPage = 1;
-		}
 		// search field condition
 		$sSearch = isset($_REQUEST['nav']['search']) ? $_REQUEST['nav']['search'] : null;
 		
@@ -81,20 +65,15 @@ class IndexView extends View {
 		$sLowerDashCtrlName = str_replace('_', '-', $this->_sDaoIndex);
 		
 		
+		
 		$oIndexCollection->navDefault('sort', 'idx');
 		$oIndexCollection->navDefault('order', 'asc');
-		
-		if (isset($_GET['nav']['sort'])) {
-		    $oIndexCollection->navSet('sort', $_GET['nav']['sort']);
-		}
-		if (isset($_GET['nav']['order'])) {
-		    $oIndexCollection->navSet('order', $_GET['nav']['order']);
-		}
+	
 		
         
         
         // get records
-        $oIndexCollection->get($iPage);
+        $oIndexCollection->get();
         
         print_r(Navigator::load());
         
