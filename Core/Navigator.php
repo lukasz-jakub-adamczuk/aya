@@ -20,9 +20,9 @@ class Navigator {
         }
     }
     
-    public static function load() {
-        if (isset($_SESSION['_nav_'][self::$_sOwner])) {
-            return $_SESSION['_nav_'][self::$_sOwner];
+    public static function load($sOwner) {
+        if (isset($_SESSION['_nav_'][$sOwner])) {
+            return $_SESSION['_nav_'][$sOwner];
         }
         return array();
     }

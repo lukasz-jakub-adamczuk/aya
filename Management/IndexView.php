@@ -35,32 +35,8 @@ class IndexView extends View {
 		
 		
 		// kolekcja
-        $oIndexCollection = Dao::collection($this->_sDaoName, Navigator::getOwner());
+        $oIndexCollection = Dao::collection($this->_sDaoName, $this->_sDaoName.'-'.$_GET['ctrl'].'-'.$_GET['act']);
         
-        //$oIndexCollection->limit(7);
-        
-        $aFilters = $this->_getFilters();
-        
-        //print_r($aFilters);
-        
-        //print_r($_SESSION);
-        
-        foreach ($aFilters as $name => $filter) {
-            if (isset($_SESSION['_nav_'][$_GET['ctrl']][$_GET['act']][$name])) {
-                if ($name == 'search' && $_SESSION['_nav_'][$_GET['ctrl']][$_GET['act']][$name] != '') {
-                    $oIndexCollection->search($this->_sDaoIndex.'.`title`', $sSearch);
-                } else {
-                    $aFilters[$name]['selected'] = $_SESSION['_nav_'][$_GET['ctrl']][$_GET['act']][$name];
-                    if (substr($name, 0, 3) == 'id_') {
-                        $oIndexCollection->navSet($this->_sDaoIndex.'.'.$name, $_SESSION['_nav_'][$_GET['ctrl']][$_GET['act']][$name]);
-                    } else {
-                        $oIndexCollection->navSet($name, $_SESSION['_nav_'][$_GET['ctrl']][$_GET['act']][$name]);
-                    }
-                }
-            }
-        }
-        
-        $this->_oRenderer->assign('aFilters', $aFilters);
         
 		$sLowerDashCtrlName = str_replace('_', '-', $this->_sDaoIndex);
 		
@@ -75,9 +51,18 @@ class IndexView extends View {
         // get records
         $oIndexCollection->get();
         
-        print_r(Navigator::load());
         
-        print_r($oIndexCollection->getNavigator());
+        
+        $aFilters = $this->_getFilters();
+        
+        $aNavigator = $oIndexCollection->getNavigator();
+        foreach ($aFilters as $name => $filter) {
+            if (isset($aNavigator[$name])) {
+                $aFilters[$name]['selected'] = $aNavigator[$name];
+            }
+        }
+        
+        $this->_oRenderer->assign('aFilters', $aFilters);
         
         
         require_once __DIR__ . '/../../XhtmlTable/Aya/Yaml/AyaYamlLoader.php';
@@ -120,4 +105,3 @@ class IndexView extends View {
 	}
 }
 ?>
-

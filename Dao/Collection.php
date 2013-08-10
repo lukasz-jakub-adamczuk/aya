@@ -64,6 +64,8 @@ class Collection {
 	protected $_aQueryFields = array('*');
 	
 	protected $_aConditions = array();
+	
+	protected $_aSearch = array();
 
 	/**
 	 * przechowuje wynik zapytania
@@ -118,11 +120,14 @@ class Collection {
 	 * konstruktor
 	 * 
 	 */
-	public function __construct($sName = null, $sNavigatorOwner = null) {
+	public function __construct($sName = null, $sNavigatorOwner = null, $aSearch = array('title')) {
 	    // ustawia nazwe, kluczowa do dalszych dzialan
 	    $this->_sName = $sName === null ? str_replace('Collection', '', get_class($this)) : $sName;
 	    // nazwa tabeli
 	    $this->_sTable = $this->_getName('underscore');
+	    
+	    $this->_aSearch = $aSearch;
+	    
 	    if ($sNavigatorOwner) {
 	        $this->_sOwner = $sNavigatorOwner;
 	    }
@@ -181,7 +186,7 @@ class Collection {
 	 */
 	protected function _getCollection() {
 		$this->fields(array('*'));
-		$this->select($this->_aNavigator['page']);
+		$this->select();
 	}
 
 	/**
@@ -437,7 +442,7 @@ class Collection {
 	
 	
 	protected function _loadNavigator() {
-	    $this->_aNavigator = Navigator::load();
+	    $this->_aNavigator = Navigator::load($this->_sOwner);
 	    
 	    if (isset($this->_aNavigator['size'])) {
 	        $this->_iSize = $this->_aNavigator['size'];
@@ -446,7 +451,9 @@ class Collection {
 	        $this->_iPage = $this->_aNavigator['page'];
 	    }
 	    if (isset($this->_aNavigator['search']) && $this->_aNavigator['search'] != '') {
-	        $this->_aWhere[] = ''.$sField.' LIKE "%'.$this->_aNavigator['search'].'%"';
+	        foreach ($this->_aSearch as $field) {
+	            $this->_aWhere[] = ''.$field.' LIKE "%'.$this->_aNavigator['search'].'%"';
+	        }
 	    }
 	    
 	    $aReserved = array('page', 'size', 'sort', 'order', 'search');
@@ -454,7 +461,7 @@ class Collection {
 	    foreach ($this->_aNavigator as $key => $val) {
 	        if (!in_array($key, $aReserved)) {
 	            if ($val !== 'null') {
-    	            $this->_aWhere[] = $key.'="'.$val.'"';
+    	            $this->_aWhere[] = $this->_sTable.'.'.$key.'="'.$val.'"';
 	            }
 	        }
 	    }
@@ -480,8 +487,15 @@ class Collection {
 	 * @param $start numer podstrony z wynikami
 	 */
 	public function select($iPage = 1) {
+	    // default navigator values (sorting)
+	    $this->_defaultNavigator();
 	    // load values from session storage
 	    $this->_loadNavigator();
+	    
+	    echo 'Owner in DB: '.$this->_sOwner;
+	    
+	    //print_r($this->_aNavigator);
+	    
 	    
 		if ($this->_iSize === -1) {
 			$sLimit = '';
