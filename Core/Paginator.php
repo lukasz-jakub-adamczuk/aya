@@ -39,8 +39,6 @@ class Paginator {
 		// items per side
 		if (isset($aNavigator['size'])) {
             $this->_iPageSize = $aNavigator['size'];
-		} else {
-			$this->_iPageSize = DEFAULT_COLLECTION_PAGE_SIZE;
 		}
 	}
 	
@@ -65,7 +63,7 @@ class Paginator {
 		}
 		
 		
-		$sPreLink = LOCAL_URL.'/'.$this->_sPreLink.'';
+		$sPreLink = $this->_sPreLink.'';
 		$sPostLink = '';
 		
 		
@@ -75,7 +73,7 @@ class Paginator {
 		$iStart = $this->_iPage;
 
 		if ($this->_iTotal > $this->_iPageSize) {
-			$this->_sPagination = '<ul class="fr links pagination">';
+			$this->_sPagination = '<ul class="paginator">';
 
 			$iPages = ceil($this->_iTotal/$this->_iPageSize);
 			

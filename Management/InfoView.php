@@ -9,19 +9,33 @@ class InfoView extends View {
 		$this->_runBeforeFill();
 		
 		// ewentualne szczegoly encji
-		if (isset($_GET['id']) || isset($_POST['id'])) {
-		    //$iId = isset($_GET['id']) ? intval($_GET['id']) : intval($_POST['id']);
-		    $iId = intval($_REQUEST['id']);
+		// if (isset($_GET['id']) || isset($_POST['id'])) {
+		//     //$iId = isset($_GET['id']) ? intval($_GET['id']) : intval($_POST['id']);
+		//     $iId = intval($_REQUEST['id']);
 		    
-		    $oInstance = Dao::entity($this->_sDaoName, $iId, 'id_'.$this->_sDaoIndex);
+		//     // $oInstance = Dao::entity($this->_sDaoName, $iId, 'id_'.$this->_sDaoIndex);
 		    
-		    $sFormMode = 'update';
-		} else {
-		    $sFormMode = 'insert';
-		}
+		//     $sFormMode = 'update';
+		// } else {
+		//     $sFormMode = 'insert';
+		// }
+
+
+
+
+		$oCategories = Dao::collection('category');
+		// $oCategories->select('SELECT * ');
+		$oCategories->orderby('name');
+		$oCategories->load(-1);
+
+		// print_r($oCategories->getRows());
+
+		$this->_oRenderer->assign('aCategories', $oCategories->getRows());
+
+		
 		
 		// form
-		$oForm = new XhtmlForm(str_replace('_', '-', $this->_sDaoIndex));
+		/*$oForm = new XhtmlForm(str_replace('_', '-', $this->_sDaoIndex));
 		
 		$oForm->configure($sFormMode);
 		
@@ -31,7 +45,7 @@ class InfoView extends View {
 		if ($sFormMode == 'update') {
 		    $oForm->setFormValues(array('id' => $oInstance->getId()));
 		
-		    $oForm->setFormValues($oInstance->getAllFields());
+		    $oForm->setFormValues($oInstance->getFields());
 	    }
 	    
 	    // insert or update with errors
@@ -51,7 +65,7 @@ class InfoView extends View {
 		
 		
 		$this->_oRenderer->assign('sForm', $oForm->render());
-		
+		*/
 	}
 	
 	public function configureForm(&$oForm) {

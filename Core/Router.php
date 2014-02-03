@@ -1,11 +1,5 @@
 <?php
-/**
- * podstawowa klasa routera
- * okresla kontroler i akcje na podstawie url
- * 
- * @author ash
- *
- */
+
 class Router {
 
 	/**
@@ -26,8 +20,8 @@ class Router {
 		} else {
 			$sAction = IVY_DEFAULT_ACTION;
 		}
-		//echo $sController;
-		//echo $sAction;
+		// echo $sController;
+		// echo $sAction;
 
 		$sControllerName = str_replace(' ', '', ucwords(str_replace('-', ' ', $sController))).'Controller';
 		
@@ -42,17 +36,18 @@ class Router {
 			if (file_exists(TPL_DIR.DS.THEME_DIR.DS.$oController->getCtrlName('lower').'-'.$oController->getActionName('lower').'.tpl')) {
 				$oController->setTemplateName($oController->getCtrlName('lower').'-'.$oController->getActionName('lower'));
 			} else {
-				if (file_exists(TPL_DIR.DS.THEME_DIR.DS.'all-'.$oController->getActionName('lower').'.tpl')) {
+				if (file_exists(TPL_DIR.DS.THEME_DIR.'/all-'.$oController->getActionName('lower').'.tpl')) {
 					$oController->setTemplateName('all-'.$oController->getActionName('lower'));
 				} else {
-					$oController->setTemplateName('all-index');
+					// $oController->setTemplateName('all-index');
+					$oController->setTemplateName('index');
 				}
 			}
 		} else {
-			if (file_exists(CTRL_DIR.DS.'ErrorController.php')) {
-				require_once CTRL_DIR.DS.'ErrorController.php';
+			if (file_exists(CTRL_DIR.'/ErrorController.php')) {
+				require_once CTRL_DIR.'/ErrorController.php';
 			} else {
-				require_once AYA_DIR.DS.'Core/ErrorController.php';
+				require_once AYA_DIR.'/Core/ErrorController.php';
 			}
 			$oController = new ErrorController;
 		}
@@ -61,5 +56,3 @@ class Router {
 		$oController->run();
 	}
 }
-
-?>

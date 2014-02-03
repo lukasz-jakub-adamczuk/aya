@@ -1,21 +1,6 @@
 <?php
 require_once SMARTY_DIR.'/Smarty.class.php';
 
-// TODO do przepisania
-define('ASH_LANGUAGES_ENABLED', false);
-define('ASH_CONTROLLER_DEBUG', false);
-//define('ASH_CONTROLLER_DEBUG', false);
-
-/**
- * abstrakcyjna klasa kontrolera
- * kontroler przechowuje info o modelu, widoku i szablonie
- * jesli ich nie ma to uruchamiana jest tylko akcja okreslona w kontrolerze
- * TODO trzeba zrobic dziedziczenie z AbstractObject dla dostepu do tablic superglobalnych
- * TODO to samo dla modelu i widoku
- * 
- * @author ash
- *
- */
 abstract class Controller {
 
 	/**
@@ -272,40 +257,38 @@ abstract class Controller {
 	 */
 	public function run() {
 	
-	    
 		$this->_aParams = unserialize(DB_SOURCE);
 
 		$this->_db = Db::getInstance($this->_aParams);
-		
-		// TODO przepisac obiekt sessji jesli cos takiego bedzie
-		$this->_session = new Session();
-		// TODO przepisac wersje jezykowe
-		if (ASH_LANGUAGES_ENABLED) {
-			$this->_oLang = Lang::getInstance();
-			
-			if (!Router::existsCache('langs/pl.json')) {
-				$this->_oLang->uselangFile(Router::getJson('langs/pl.json'));
-				$this->_oLang->getXML();
-			} else {
-				$this->_oLang->loadXML('pl.xml');
-				Router::saveJson('langs/pl.json', $this->_oLang->getXML());
-			}
-		}
 
 
 		$this->_oRenderer = new Smarty;
-/*		$this->_oRenderer->template_dir = TPL_DIR.THEME_DIR;
-		$this->_oRenderer->compile_dir = TPL_C_DIR.THEME_DIR;
+		// $this->_oRenderer->template_dir = TPL_DIR.THEME_DIR;
+		// $this->_oRenderer->compile_dir = TPL_C_DIR.THEME_DIR;
 //		$this->_oRenderer->compile_check = true;
-*/
 
 
-        $this->_oRenderer->setTemplateDir(TPL_DIR.DS.THEME_DIR);
-        $this->_oRenderer->setCompileDir(TPL_C_DIR.DS.THEME_DIR);
+
+        $this->_oRenderer->setTemplateDir(TPL_DIR.THEME_DIR);
+        $this->_oRenderer->setCompileDir(TPL_C_DIR.THEME_DIR);
 //        $this->setConfigDir(GUESTBOOK_DIR . 'configs');
   //      $this->setCacheDir(GUESTBOOK_DIR . 'cache');
   
         // init kontorlera
+        if (!isset($_SESSION['user'])) {
+        	// echo 'unauthorized';
+        	// $this->_a
+        	// $this->_oRenderer->display('auth.tpl');
+        	// $this->actionForward('login', 'auth');
+        	
+
+        	// $this->auth();
+
+        	// die();	
+        	// echo $_SESSION['auth'];
+    	}
+    	// print_r($_SESSION['user']);
+
         $this->_init();
 		
 		if (method_exists($this, $this->_sActionName.'Action')) {
@@ -370,8 +353,16 @@ abstract class Controller {
 			$this->_oRenderer->assign('content', '404');
 			//$this->_oRenderer->assign('content', 'offer-index');
 			
-			$this->_oRenderer->assign('sLocalUrl', LOCAL_URL);
+			// $this->_oRenderer->assign('sLocalUrl', LOCAL_URL);
 		}
+
+		// echo 'GET[CTRL]: '.$_GET['ctrl'].', ';
+		// echo 'GET[ACT]: '.$_GET['act'].', ';
+
+		// echo 'CTRL: '.$this->_sCtrlName.', ';
+		// echo 'ACT: '.$this->_sActionName.', ';
+
+		// echo 'END FLOW';
 		
 		//$this->_oRenderer->display('index.tpl');
 		$this->_oRenderer->display('layout.tpl');
@@ -391,5 +382,26 @@ abstract class Controller {
 			$this->_oRenderer->assign('content', '404');
 		}
 	}
+
+	public function auth() {
+		if (isset($_POST['auth'])) {
+			if (($_POST['auth']['user'] == 'ash' && $_POST['auth']['pass'] == 'demo10')
+			|| ($_POST['auth']['user'] == 'pawel' && $_POST['auth']['pass'] == 'demo12')) {
+				$_SESSION['user']['id'] = 1;
+				$_SESSION['user']['active'] = 1;
+				$_SESSION['user']['name'] = $_POST['auth']['user'];
+			} else {
+				$sAuthError = 'Nieprawidłowe dane podczas logowania';
+				$this->_oRenderer->assign('sAuthError', $sAuthError);
+			}
+		} else {
+			// echo 'WRONG';
+		}
+
+		// end when unauthorized
+		if (!isset($_SESSION['user'])) {
+			$this->_oRenderer->display('login.tpl');
+			die();
+		}
+	}
 }
-?>

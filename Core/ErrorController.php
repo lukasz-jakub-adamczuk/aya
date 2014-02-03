@@ -1,7 +1,6 @@
 <?php
-require_once ASH_LIB_DIR.DS.'Core/Controller.php';
+require_once AYA_DIR.'/Core/Controller.php';
 
 class ErrorController extends Controller {
 	
 }
-?>

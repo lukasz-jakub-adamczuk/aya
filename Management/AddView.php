@@ -27,7 +27,10 @@ class AddView extends View {
 		}
 		
 		// form
-		$oForm = new XhtmlForm($sDaoIndex);
+		$oForm = new XhtmlForm(str_replace('_', '-', $this->_sDaoIndex));
+
+		// echo $sDaoIndex;
+		// print_r($oForm);
 		
 		$oForm->configure($sFormMode);
 		
@@ -38,6 +41,14 @@ class AddView extends View {
 		
 		    $oForm->setFormValues($oInstance->getAllFields());
 	    }
+
+	    $this->configureForm($oForm);
+
+	    $sYamlFile = X_FORM_LANG_DIR.'/pl/forms/'.str_replace('_', '-', $this->_sDaoIndex).'.yaml';
+		$oYamlParser = new sfYamlParser();
+        $aFormTexts = $oYamlParser->parse(file_get_contents($sYamlFile));
+		
+		$oForm->setFormTexts($aFormTexts);
 		
 //		print_r($oForm);
 		
