@@ -25,11 +25,22 @@ class IndexView extends View {
 	public function fill() {
 		// startowe dzialanie
 		$this->_runBeforeFill();
+
+		Debug::show(Navigator::getOwner());
 		
 		Navigator::init();
+
+		Debug::show(Navigator::load(Navigator::getOwner()));
+
+		// Debug::show($_SESSION['_nav_'], '$_SESSION');
+
+		// $_SESSION['test'] = 'aaa';
+
+		// print_r($_SESSION);
+
 		
 		// search field condition
-		// $sSearch = isset($_REQUEST['nav']['search']) ? $_REQUEST['nav']['search'] : null;
+		$sSearch = isset($_REQUEST['nav']['search']) ? $_REQUEST['nav']['search'] : null;
 		
 		// $sWhere = isset($_REQUEST['nav']['id_offer']) ? $_REQUEST['nav']['id_article'] : null;
 		
@@ -48,11 +59,17 @@ class IndexView extends View {
 
 		$oIndexCollection->setGroupPart(' GROUP BY article.id_article');
 		// $oIndexCollection->setOrderPart(' ORDER BY '.$_GET['nav']['sort'].' DESC');
-		
-		$oIndexCollection->navDefault('sort', 'article.creation-date');
-		$oIndexCollection->navDefault('order', 'desc');
 
-		$oIndexCollection->navDefault('size', 15);
+		if ($sSearch) {
+			// $oIndexCollection->search('');
+		}
+		
+		// $oIndexCollection->navDefault('sort', 'creation-date');
+		// $oIndexCollection->navDefault('order', 'desc');
+
+		// $oIndexCollection->navDefault('size', 25);
+
+
 		
 		
 		// get records
@@ -68,6 +85,14 @@ class IndexView extends View {
 		}
 		
 		$this->_oRenderer->assign('aFilters', $aFilters);
+
+
+		$oCategories = Dao::collection('category');
+		// $oCategories->select('SELECT * ');
+		$oCategories->orderby('name');
+		$oCategories->load(-1);
+		// print_r($oCategories->getRows());
+		$this->_oRenderer->assign('aCategories', $oCategories->getRows());
 		
 		
 		require_once __DIR__ . '/../../XhtmlTable/Aya/Yaml/AyaYamlLoader.php';

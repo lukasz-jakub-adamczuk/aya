@@ -53,69 +53,19 @@ class Collection {
 		$this->_mId = 'id_'.$this->_sTable;
 		
 		// $this->_aSearch = $aSearch;
+		$this->_aSearch = array('title');
 		
 		if ($sNavigatorOwner) {
 			$this->_sOwner = $sNavigatorOwner;
 		}
 		$this->_db = Db::getInstance();
 	}
-	
-	// protected function _getName($sCase = null) {
-	// 	if ($sCase == 'underscore') {
-	// 		return strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $this->_sName));
-	// 	} elseif ($sCase == 'dash') {
-	// 		return strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $this->_sName));
-	// 	} else {
-	// 		return $this->_sName;
-	// 	}
-	// }
-
-	/**
-	 * pobiera krotka nazwe klasy
-	 * domyslnie nazwa jest bez zmian
-	 * inne formaty to 'lower', 'upper', 'caps' 
-	 * 
-	 * @param $sCase format nazwy klasy
-	 * @return string
-	 */
-	// protected function _getShortClassName($sCase = null) {
-	// 	if ($sCase == 'lower') {
-	// 		return strtolower(str_replace('_Collection', '', preg_replace('/([a-z])([A-Z])/', '$1_$2', get_class($this))));
-	// 	} elseif ($sCase == 'dashed') {
-	// 		return strtolower(str_replace('-Collection', '', preg_replace('/([a-z])([A-Z])/', '$1-$2', get_class($this))));
-	// 	} elseif ($sCase == 'caps') {
-	// 		return ucfirst(str_replace('Collection', '', get_class($this)));
-	// 	} else {
-	// 		return str_replace('Collection', '', get_class($this));
-	// 	}
-	// }
-	
-	// public function get($iPage = 1) {
-	// 	if ($iPage === -1) {
-	// 		$this->_iSize = -1;
-	// 	}
-		
-	// 	$this->_getCollection();
-	// }
-	
-	/**
-	 * pobiera kolekcje danych
-	 * 
-	 * @return unknown_type
-	 */
-	// protected function _getCollection() {
-	// 	$this->select('*');
-	// 	$this->load();
-	// }
-
-
 
 	public function load($iSize = null) {
 		// using unicode charset
 		$this->_db->execute("SET NAMES utf8");
 
 		if ($iSize) {
-			// echo 'sizing';
 			$this->_iSize = $iSize;
 		}
 
@@ -126,7 +76,7 @@ class Collection {
 		}
 
 
-		// echo 'QUERY: ' . $this->_sQuery;
+		echo 'QUERY: ' . $this->_sQuery;
 
 		Debug::show($this->_sQuery);
 
@@ -135,14 +85,47 @@ class Collection {
 		$this->_aNavigator['loaded'] = count($this->_aRows);
 		
 		// total
-		if ($this->_iSize === -1) {
-			$this->_aNavigator['total'] = count($this->_aRows);
-		} else {
+		if ($this->_iSize) {
+		// 	$this->_aNavigator['total'] = count($this->_aRows);
+		// } else {
 			$this->_aNavigator['total'] = $this->getCount();
 		}
 
 		// $this->_select();
 		$this->_bLoaded = 1;
+	}
+
+	protected function _prepare() {
+		// default navigator values (sorting)
+		$this->_defaultNavigator();
+		Debug::show($this->_aNavigator, '$this->_aNavigator');
+		// load values from session storage
+		$this->_loadNavigator();
+		Debug::show($this->_aNavigator, '$this->_aNavigator');
+
+
+		// tmp hack
+		if (isset($this->_aNavigator['page'])) {
+			echo $this->_aNavigator['page'];
+			$iPage = $this->_aNavigator['page'];
+		}
+		// echo $this->_iSize;
+		// $this->_iSize = -1;
+		
+		// $this->_sSelect = implode(',', $this->_aQueryFields);
+
+		if ($this->_iSize === -1) {
+			$sLimit = '';
+		} else {
+			$iPage = $iPage > 0 ? $iPage-1 : 0;
+			$sLimit = ' LIMIT '.($iPage) * $this->_iSize.','.$this->_iSize;
+		}
+		return $this->getSelectPart().' '.$this->getFromPart().' '.$this->getJoinPart().''.$this->_getWhere().''.$this->getGroupPart().''.$this->getOrderPart().''.$sLimit.'';
+	}
+
+	public function getCount() {
+		$this->_sQuery = 'SELECT COUNT('.$this->_mId.') AS total '.$this->getFromPart().''.$this->_getWhere().'';
+		return $this->_db->getOne($this->_sQuery, 'total');
 	}
 
 	protected function _defaultNavigator() {
@@ -160,6 +143,7 @@ class Collection {
 	
 	protected function _loadNavigator() {
 		$this->_aNavigator = Navigator::load($this->_sOwner);
+		Debug::show($this->_sOwner, 'Owner');
 		
 		if (isset($this->_aNavigator['size'])) {
 			$this->_iSize = $this->_aNavigator['size'];
@@ -184,89 +168,23 @@ class Collection {
 		}
 	}
 
-	protected function _prepare() {
-		// default navigator values (sorting)
-		$this->_defaultNavigator();
-		// load values from session storage
-		$this->_loadNavigator();
-
-
-		// tmp hack
-		if (isset($this->_aNavigator['page'])) {
-			echo $this->_aNavigator['page'];
-			$iPage = $this->_aNavigator['page'];
-		}
-
-
-		
-		// $this->_sSelect = implode(',', $this->_aQueryFields);
-
-		if ($this->_iSize === -1) {
-			$sLimit = '';
-		} else {
-			$iPage = $iPage > 0 ? $iPage-1 : 0;
-			$sLimit = ' LIMIT '.($iPage) * $this->_iSize.','.$this->_iSize;
-		}
-		//return 'SELECT '.$this->_sSelect.' FROM '.$this->_sTable.' a '.$this->getJoinPart().''.$this->_getWhere().''.$this->getGroupPart().''.$this->getOrderPart().''.$sLimit.'';
-		return $this->getSelectPart().' '.$this->getFromPart().' '.$this->getJoinPart().''.$this->_getWhere().''.$this->getGroupPart().''.$this->getOrderPart().''.$sLimit.'';
-		// return $this->getSelectPart().' '.$this->getJoinPart().''.$this->_getWhere().' GROUP BY a.creation_date
-// ORDER BY a.creation_date DESC'.$sLimit.'';
-		
+	public function navSet($sName, $mValue) {
+		Navigator::set($sName, $mValue);
 	}
-
-
-	public function query($sQuery) {
-		$this->_sQuery = $sQuery;
-	}
-
-	public function select($mSelect) {
-		if (is_array($mSelect)) {
-			$this->_sSelect = implode(',', $mSelect);
-		} else {
-			echo $mSelect;
-			$this->_sSelect = $mSelect;
+	
+	public function navDefault($sName, $mValue) {
+		if (Navigator::is($sName) === false) {
+			Navigator::set($sName, $mValue);
 		}
 	}
 
-	/**
-	 * ustawia liczbe wynikow na stronie
-	 * 
-	 * @param $iSize rozmiar strony
-	 */
+
+
+
 	public function setPageSize($iSize) {
 		$this->_iSize = $iSize;
 	}
 
-	/**
-	 * zwraca pola dla zapytania
-	 * domyslnie wszyskie pola tabeli
-	 * 
-	 * @return string
-	 */
-	private function _getFields() {
-		return implode(',', $this->_aQueryFields);
-	}
-	
-	/**
-	 * pobiera obiekt paginatora
-	 * domyslny tryb to poprzedni-nastepny
-	 * 
-	 * @param $sMode tryb pracy paginatora
-	 * @return string
-	 */
-	public function getPaginator($sMode = 'prev-next') {
-		$oPaginator = new Paginator($this->_aNavigator);
-
-		return $oPaginator->configure($sMode, './'.strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $this->_sName)).'')->generate();
-	}
-	
-	/**
-	 * przechowuje info nawigacyjne
-	 * pole do sortowania, kierunek sortowania,
-	 * numer strony, limit wynikow na stronie, itp
-	 * 
-	 * @return array
-	 */
 	public function getNavigator() {
 		return $this->_aNavigator;
 	}
@@ -293,6 +211,8 @@ class Collection {
 		}
 		return $aColumn;
 	}
+
+
 
 	/**
 	 * zwraca tresc zapytania sql
@@ -337,13 +257,16 @@ class Collection {
 	}
 	
 
-	public function navSet($sName, $mValue) {
-		Navigator::set($sName, $mValue);
+	public function query($sQuery) {
+		$this->_sQuery = $sQuery;
 	}
-	
-	public function navDefault($sName, $mValue) {
-		if (Navigator::is($sName) === false) {
-			Navigator::set($sName, $mValue);
+
+	public function select($mSelect) {
+		if (is_array($mSelect)) {
+			$this->_sSelect = implode(',', $mSelect);
+		} else {
+			echo $mSelect;
+			$this->_sSelect = $mSelect;
 		}
 	}
 
@@ -376,95 +299,11 @@ class Collection {
 		return $this;
 	}
 
-	/**
-	 * ustawia kryterium dla zapytania
-	 * domyslnie operator '='
-	 * 
-	 * @param $sField nazwa pola
-	 * @param $mValue wartosc pola
-	 * @param $mOperator typ oeratora
-	 * @return $this
-	 */
-	// public function where($sField, $mValue, $mOperator = '=') {
-	// 	if ($this->_sWhere == '') {
-	// 		$this->_sWhere .= ' WHERE ';
-	// 	}
-	// 	$this->_sWhere .= ''.$sField.' '.$mOperator.' "'.$mValue.'"';
-		
-	// 	return $this;
-	// }
-	
-	/**
-	 * ustawia alernatywne (OR) kryterium dla zapytania
-	 * domyslnie operator '='
-	 * 
-	 * @param $sField nazwa pola
-	 * @param $mValue wartosc pola
-	 * @param $mOperator typ oeratora
-	 * @return $this
-	 */
-	// public function orWhere($sField, $mValue, $mOperator = '=') {
-	// 	if ($this->_sWhere == '') {
-	// 		$this->_sWhere .= ' WHERE '.$sField.' '.$mOperator.' "'.$mValue.'" OR ';
-	// 	} else {
-	// 		$this->_sWhere .= ' OR '.$sField.' '.$mOperator.' "'.$mValue.'"';
-	// 	}
-	// 	return $this;
-	// }
-	
-	/**
-	 * ustawia rownowazne (AND) kryterium dla zapytania
-	 * domyslnie operator '='
-	 * 
-	 * @param $sField nazwa pola
-	 * @param $mValue wartosc pola
-	 * @param $mOperator typ oeratora
-	 * @return $this
-	 */
-	// public function andWhere($sField, $mValue, $mOperator = '=') {
-	// 	if ($this->_sWhere == '') {
-	// 		$this->_sWhere .= ' WHERE '.$sField.' '.$mOperator.' "'.$mValue.'" AND ';
-	// 	} else {
-	// 		$this->_sWhere .= ' AND '.$sField.' '.$mOperator.' "'.$mValue.'"';
-	// 	}
-		
-	// 	return $this;
-	// }
-	
-	/**
-	 * ustawia kryterium wyszukiwania dla zapytania
-	 * 
-	 * @param $sField nazwa pola
-	 * @param $mValue wartosc pola
-	 * @return $this
-	 */
-	public function search($sField, $mValue) {
-		$this->_sWhere .= ' WHERE '.$sField.' LIKE "%'.$mValue.'%"';
-	
-		return $this;
-	}
-
-	/**
-	 * grupuje wiersze podczas zapytania
-	 * domyslne grupowanie po polu 'name'
-	 * 
-	 * @param $sGroup pole grupujace
-	 * @return $this
-	 */
 	public function groupby($sGroup = 'name') {
 		$this->_sGroup = ' GROUP BY '.$sGroup;
 		return $this;
 	}
 
-	/**
-	 * sortuje wiersze podczas zapytania
-	 * domyslnie sortowanie po polu 'name'
-	 * w kierunku rosnacym
-	 * 
-	 * @param $sOrder pole sortujace
-	 * @param $sDirection kierunek sortowania
-	 * @return $this
-	 */
 	public function orderby($sOrder = 'name', $sDirection = 'ASC') {
 		// default sorting by table fields
 		// $sSort = '`'.$this->_sTable.'`.`'.$sOrder.'`';
@@ -490,15 +329,14 @@ class Collection {
 		return $this;
 	}
 	
-	/**
-	 * ustawia limit wynikow na stronie
-	 * potrzebny to ustawienia LIMIT w select()
-	 * 
-	 * @param $iSize liczba wynikow na stronie
-	 * @return $this
-	 */
 	public function limit($iSize) {
 		$this->_iSize = $iSize;
+		return $this;
+	}
+
+
+	public function search($sField, $mValue) {
+		$this->_sWhere .= ' WHERE '.$sField.' LIKE "%'.$mValue.'%"';
 		return $this;
 	}
 
@@ -516,12 +354,6 @@ class Collection {
 	}
 
 
-	public function getCount() {
-		// $this->_sQuery = 'SELECT COUNT('.$this->_mId.') AS total FROM '.$this->_sTable.''.$this->_sJoin.''.$this->_getWhere().''.$this->_sGroup.''.$this->_sOrder.'';
-		$this->_sQuery = 'SELECT COUNT('.$this->_mId.') AS total FROM '.$this->_sTable.''.$this->_getWhere().'';
-		//$this->echoQuery();
-		return $this->_db->getOne($this->_sQuery, 'total');
-	}
 	
 
 

@@ -261,6 +261,8 @@ abstract class Controller {
 
 		$this->_db = Db::getInstance($this->_aParams);
 
+		session_start();
+
 
 		$this->_oRenderer = new Smarty;
 		// $this->_oRenderer->template_dir = TPL_DIR.THEME_DIR;
@@ -308,16 +310,6 @@ abstract class Controller {
 					$this->setTemplateName($sTplName);
 					$this->$sActionName();
 				}
-			} elseif (isset($_GET['section'])) {
-//				echo 'sekcja';
-				$sAction = $_GET['action'];
-				$sSection = $_GET['section'];
-				$sActionName = $sSection.ucfirst($sAction).'Action';
-	
-				if (method_exists($this, $sActionName)) {
-					$this->setTemplateName($this->getControllerName('lower').'-'.$sAction.'-'.$sSection);
-					$this->$sActionName();
-				}
 			} else {
 //				echo 'akcja';
 				$sMethodName = $this->_sActionName.'Action';
@@ -356,6 +348,9 @@ abstract class Controller {
 			// $this->_oRenderer->assign('sLocalUrl', LOCAL_URL);
 		}
 
+		// print debug info
+		$this->_oRenderer->assign('aLogs', Debug::getLogs());
+
 		// echo 'GET[CTRL]: '.$_GET['ctrl'].', ';
 		// echo 'GET[ACT]: '.$_GET['act'].', ';
 
@@ -363,6 +358,8 @@ abstract class Controller {
 		// echo 'ACT: '.$this->_sActionName.', ';
 
 		// echo 'END FLOW';
+		$this->_oRenderer->assign('ctrl', strip_tags($_GET['ctrl']));
+		$this->_oRenderer->assign('act', strip_tags($_GET['act']));
 		
 		//$this->_oRenderer->display('index.tpl');
 		$this->_oRenderer->display('layout.tpl');
