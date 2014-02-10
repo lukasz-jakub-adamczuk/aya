@@ -76,8 +76,6 @@ class Collection {
 		}
 
 
-		echo 'QUERY: ' . $this->_sQuery;
-
 		Debug::show($this->_sQuery);
 
 		$this->_aRows = $this->_db->getArray($this->_sQuery, $this->_mId);
