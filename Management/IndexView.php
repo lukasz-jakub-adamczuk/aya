@@ -7,6 +7,12 @@ require_once AYA_DIR.'/../XhtmlTable/Aya/Xhtml/Table/AyaXhtmlTable.php';
 
 class IndexView extends View {
 
+	protected $_sOwner;
+
+	protected function setCollectionOwner() {
+		
+	}
+
 	protected function _getFilters() {
 		return false;
 	}
@@ -21,12 +27,6 @@ class IndexView extends View {
 
 		Debug::show(Navigator::load(Navigator::getOwner()));
 
-		// Debug::show($_SESSION['_nav_'], '$_SESSION');
-
-		// $_SESSION['test'] = 'aaa';
-
-		// print_r($_SESSION);
-
 		
 		// search field condition
 		$sSearch = isset($_REQUEST['nav']['search']) ? $_REQUEST['nav']['search'] : null;
@@ -40,13 +40,13 @@ class IndexView extends View {
 		// echo $this->_sDaoName;
 		
 		// kolekcja
-		$oIndexCollection = Dao::collection($this->_sDaoName, $this->_sDaoName.'-'.$sCtrl.'-'.$sAct);
+		$oIndexCollection = Dao::collection($this->_sDaoName, $this->_sOwner);
 
 		
 		$sLowerDashCtrlName = str_replace('_', '-', $this->_sDaoIndex);
 		
 
-		$oIndexCollection->setGroupPart(' GROUP BY article.id_article');
+		// $oIndexCollection->setGroupPart(' GROUP BY article.id_article');
 		// $oIndexCollection->setOrderPart(' ORDER BY '.$_GET['nav']['sort'].' DESC');
 
 		if ($sSearch) {
@@ -75,6 +75,12 @@ class IndexView extends View {
 		
 		$this->_oRenderer->assign('aFilters', $aFilters);
 
+		$aRows = $oIndexCollection->getRows();
+		
+		if (count($aRows) > 0) {
+			$aDefaultConfig = array_keys(current($aRows));
+		}
+
 
 		$oCategories = Dao::collection('category');
 		// $oCategories->select('SELECT * ');
@@ -87,7 +93,11 @@ class IndexView extends View {
 		require_once __DIR__ . '/../../XhtmlTable/Aya/Yaml/AyaYamlLoader.php';
 		
 		$file = APP_DIR . '/conf/layout/tables/'.$sLowerDashCtrlName.'.yml';
-		$aConfig = AyaYamlLoader::parse($file);
+		if (file_exists($file)) {
+			$aConfig = AyaYamlLoader::parse($file);
+		} else {
+			$aConfig = array('cols' => array_flip($aDefaultConfig));
+		}
 
 		
 		$oAyaXhtmlTable = new AyaXhtmlTable();
@@ -99,13 +109,15 @@ class IndexView extends View {
 		
 		$oAyaXhtmlTable->configure($aConfig);
 		
-		$file = APP_DIR . '/langs/pl/tables/common.yml';
-		$aGlobalTexts = AyaYamlLoader::parse($file);
+		$filename = APP_DIR . '/langs/pl/tables/common.yml';
+		$aGlobalTexts = AyaYamlLoader::parse($filename);
 		
-		$file = APP_DIR . '/langs/pl/tables/'.$sLowerDashCtrlName.'.yml';
-		$aLocalTexts = AyaYamlLoader::parse($file);
+		$filename = APP_DIR . '/langs/pl/tables/'.$sLowerDashCtrlName.'.yml';
+		if (file_exists($filename)) {
+			$aLocalTexts = AyaYamlLoader::parse($filename);
 		
-		$oAyaXhtmlTable->translate($aGlobalTexts, $aLocalTexts);
+			$oAyaXhtmlTable->translate($aGlobalTexts, $aLocalTexts);
+		}
 		
 		$oAyaXhtmlTable->assign($oIndexCollection->getRows(), $oIndexCollection->getNavigator());
 
@@ -125,7 +137,12 @@ class IndexView extends View {
 	
 	protected function _runBeforeFill() {
 		// dla potomnych
-		Navigator::setOwner($this->_sDaoName.'-'.$_GET['ctrl'].'-'.$_GET['act']);
+		
+
+		// dla widoku to samo
+		$this->_sOwner = $this->_sDaoName.'-'.$_GET['ctrl'].'-'.$_GET['act'];
+
+		Navigator::setOwner($this->_sOwner);
 	}
 	
 	protected function _runAfterFill() {

@@ -8,6 +8,8 @@
 class Paginator {
 	
 	const PAGINATOR_PAGES_LIMIT = 3;
+
+	const PAGINATOR_PAGE_SIZE = 25;
 	
 	private $_sPagination;
 	
@@ -35,10 +37,14 @@ class Paginator {
 		// current page
 		if (isset($aNavigator['page'])) {
 		    $this->_iPage = $aNavigator['page'];
+		} else {
+			// $this->_iPage = $aNavigator['page'];
 		}
 		// items per side
 		if (isset($aNavigator['size'])) {
             $this->_iPageSize = $aNavigator['size'];
+		} else {
+			$this->_iPageSize = self::PAGINATOR_PAGE_SIZE;
 		}
 	}
 	
