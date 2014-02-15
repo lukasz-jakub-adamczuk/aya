@@ -72,4 +72,3 @@ class InfoView extends View {
 	    // dla potomnych
 	}
 }
-?>

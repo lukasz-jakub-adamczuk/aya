@@ -5,23 +5,12 @@ require_once AYA_DIR.'/Core/Dao.php';
 //require_once AYA_DIR.'/Xhtml/Table/AyaXhtmlTable.php';
 require_once AYA_DIR.'/../XhtmlTable/Aya/Xhtml/Table/AyaXhtmlTable.php';
 
-/**
- * abstrakcyjna klasa widoku
- * 
- * @author ash
- *
- */
 class IndexView extends View {
 
 	protected function _getFilters() {
 		return false;
 	}
 	
-	/**
-	 * podstawowe dzialania widoku
-	 * 
-	 * @return unknown_type
-	 */
 	public function fill() {
 		// startowe dzialanie
 		$this->_runBeforeFill();
@@ -103,7 +92,7 @@ class IndexView extends View {
 		
 		$oAyaXhtmlTable = new AyaXhtmlTable();
 		
-//        $oAyaXhtmlTable->setCacheDir(APP_DIR.DS.'tmp');
+		// $oAyaXhtmlTable->setCacheDir(APP_DIR.DS.'tmp');
 
 		$oAyaXhtmlTable->setSortLink(BASE_URL.'/'.$sLowerDashCtrlName);
 		$oAyaXhtmlTable->setBaseLink(BASE_URL);
@@ -143,4 +132,3 @@ class IndexView extends View {
 		// dla potomnych
 	}
 }
-?>
