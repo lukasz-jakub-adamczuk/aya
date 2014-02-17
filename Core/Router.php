@@ -34,7 +34,7 @@ class Router {
 			// echo $oController->getCtrlName('lower').'-'.$oController->getActionName('lower');
 			// echo TPL_DIR;
 			// echo TPL_DIR.DS.THEME_DIR.DS.$oController->getCtrlName('lower').'-'.$oController->getActionName('lower').'.tpl';
-			echo TPL_DIR.THEME_DIR.DS.$oController->getCtrlName('lower').'-'.$oController->getActionName('lower').'.tpl';
+			// echo TPL_DIR.THEME_DIR.DS.$oController->getCtrlName('lower').'-'.$oController->getActionName('lower').'.tpl';
 			
 			$oController->setModelName($oController->getCtrlName().$oController->getActionName());
 			$oController->setViewName($oController->getCtrlName().$oController->getActionName());
