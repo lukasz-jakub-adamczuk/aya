@@ -5,32 +5,21 @@ require_once AYA_DIR.'/Html/Form/HtmlForm.php';
 class InfoView extends View {
 	
 	public function fill() {
-		// startowe dzialanie
-		$this->_runBeforeFill();
-		
-		// ewentualne szczegoly encji
-		// if (isset($_GET['id']) || isset($_POST['id'])) {
-		//     //$iId = isset($_GET['id']) ? intval($_GET['id']) : intval($_POST['id']);
-		//     $iId = intval($_REQUEST['id']);
+		echo 'fill';
+		// entity
+		if (isset($_GET['id']) || isset($_POST['id'])) {
+			//$iId = isset($_GET['id']) ? intval($_GET['id']) : intval($_POST['id']);
+			$iId = intval($_REQUEST['id']);
 			
-		//     // $oInstance = Dao::entity($this->_sDaoName, $iId, 'id_'.$this->_sDaoIndex);
+			$oInstance = Dao::entity($this->_sDaoName, $iId, 'id_'.$this->_sDaoIndex);
 			
-		//     $sFormMode = 'update';
-		// } else {
-		//     $sFormMode = 'insert';
-		// }
+			$sFormMode = 'update';
+		} else {
+			$sFormMode = 'insert';
+		}
 
-		echo 'INFO VIEW';
+		$this->_oRenderer->assign('aFields', $oInstance->getFields());
 
-
-		$oCategories = Dao::collection('category');
-		// $oCategories->select('SELECT * ');
-		$oCategories->orderby('name');
-		$oCategories->load(-1);
-
-		// print_r($oCategories->getRows());
-
-		$this->_oRenderer->assign('aCategories', $oCategories->getRows());
 
 		
 		$sId = str_replace('_', '-', $this->_sDaoIndex);

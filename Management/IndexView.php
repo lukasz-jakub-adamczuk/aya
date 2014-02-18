@@ -18,9 +18,6 @@ class IndexView extends View {
 	}
 	
 	public function fill() {
-		// startowe dzialanie
-		$this->_runBeforeFill();
-
 		Debug::show(Navigator::getOwner());
 		
 		Navigator::init();
@@ -58,7 +55,7 @@ class IndexView extends View {
 
 		// $oIndexCollection->navDefault('size', 25);
 
-
+		$oIndexCollection->orderby('creation_date', 'desc');
 		
 		
 		// get records
@@ -67,9 +64,11 @@ class IndexView extends View {
 		$aFilters = $this->_getFilters();
 		
 		$aNavigator = $oIndexCollection->getNavigator();
-		foreach ($aFilters as $name => $filter) {
-			if (isset($aNavigator[$name])) {
-				$aFilters[$name]['selected'] = $aNavigator[$name];
+		if ($aFilters) {
+			foreach ($aFilters as $name => $filter) {
+				if (isset($aNavigator[$name])) {
+					$aFilters[$name]['selected'] = $aNavigator[$name];
+				}
 			}
 		}
 		
@@ -116,7 +115,7 @@ class IndexView extends View {
 		if (file_exists($filename)) {
 			$aLocalTexts = AyaYamlLoader::parse($filename);
 		
-			$oAyaXhtmlTable->translate($aGlobalTexts, $aLocalTexts);
+		//$oAyaXhtmlTable->translate($aGlobalTexts, $aLocalTexts);
 		}
 		
 		$oAyaXhtmlTable->assign($oIndexCollection->getRows(), $oIndexCollection->getNavigator());
@@ -135,7 +134,7 @@ class IndexView extends View {
 		$this->_oRenderer->assign('aNavigator', $aNavigator);
 	}
 	
-	protected function _runBeforeFill() {
+	public function beforeFill() {
 		// dla potomnych
 		
 
@@ -145,7 +144,7 @@ class IndexView extends View {
 		Navigator::setOwner($this->_sOwner);
 	}
 	
-	protected function _runAfterFill() {
+	public function afterFill() {
 		// dla potomnych
 	}
 }

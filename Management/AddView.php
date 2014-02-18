@@ -5,8 +5,6 @@ require_once AYA_DIR.DS.'Xhtml/Form/XhtmlForm.php';
 class AddView extends View {
 	
 	public function fill() {
-		// startowe dzialanie
-		$this->_runBeforeFill();
 		
 		// config
 		//echo $this->_sActionName;
