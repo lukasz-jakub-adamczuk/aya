@@ -1,6 +1,6 @@
-<p style="margin: 0 15px; padding: 5px 15px; background: #48c; border-radius: 3px;">
   Framework is on redesign phase. Some concepts will be changed and many code will be overridden or deleted. Stay tuned.
-</p>
+
+<!-- ![ScreenShot](https://bitbucket.org/schibstednorge/qualitystation/raw/master/screenshot.png "Dashboard") -->
 
 # aya
 
@@ -17,7 +17,7 @@ Framework has modular structure which helps with using code in other projects or
 
 ## Modules
 
-All files are structured for better organization and to easier maintainance.
+All files are structured for better organization and to maintainance easier.
 
 ### Core
 
@@ -27,7 +27,12 @@ Main classes use to framework working, like controllers, views, and DAO abstract
 
 Classes to organize CRUD functions in application.
 
-### Xhtml
+### Html
 
-Classes to generate static Xhtml content, like tables, formes, etc.
+Classes to generate Html content, like tables, forms, etc.
+
+#### Forms
+
+![ScreenShot](forms-concept.jpg "Dashboard")
+
 

@@ -1,6 +1,6 @@
 <?php
 require_once AYA_DIR.'/Core/View.php';
-require_once AYA_DIR.'/Html/HtmlForm.php';
+require_once AYA_DIR.'/Html/Form/HtmlForm.php';
 
 class InfoView extends View {
 	
@@ -34,8 +34,17 @@ class InfoView extends View {
 
 		
 		$sId = str_replace('_', '-', $this->_sDaoIndex);
+
+		require_once __DIR__ . '/../../XhtmlTable/Aya/Yaml/AyaYamlLoader.php';
+
+		$sYamlFile = APP_DIR.'/conf/layout/forms/'.str_replace('_', '-', $this->_sDaoIndex).'.yml';
+		// $aConfig = AyaYamlLoader::parse($sYamlFile);
+
+		// print_r($aConfig);
+		// $aConfig = arra
 		
 		// form
+		// $oForm = new HtmlForm($sId, $aConfig);
 		$oForm = new HtmlForm($sId);
 		
 		// $oForm->configure($sFormMode);

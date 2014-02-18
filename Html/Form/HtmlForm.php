@@ -16,14 +16,16 @@ class HtmlForm {
 
 	public function __construct($sId, $aParams = null) {
 		$this->_sId = $sId;
+
+		print_r($aParams);
 	}
 
 	public function configure() {
-
+		
 	}
 
 	protected function _init() {
-
+		
 	}
 
 	public function setCacheDir($sCacheDir) {
