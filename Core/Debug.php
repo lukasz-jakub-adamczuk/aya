@@ -32,7 +32,9 @@ class Debug {
 	}
 
 	public static function getLogs() {
-		return self::$_aLogs;
+		if (DEBUG_MODE) {
+			return self::$_aLogs;
+		}
 	}
 
 	public static function showLogs() {

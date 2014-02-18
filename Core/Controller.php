@@ -3,212 +3,197 @@ require_once SMARTY_DIR.'/Smarty.class.php';
 
 abstract class Controller {
 
-	/**
-	 * parametry polaczenia z baza danych
-	 * 
-	 * @var unknown_type
-	 */
 	protected $_aParams;
 
-	/**
-	 * nazwa kontrolera
-	 * 
-	 * @var unknown_type
-	 */
 	protected $_sCtrlName;
 	
-	/**
-	 * nazwa akcji
-	 * 
-	 * @var unknown_type
-	 */
 	protected $_sActionName;
 	
-	/**
-	 * nazwa modelu
-	 * 
-	 * @var unknown_type
-	 */
-	protected $_sModelName;
-	
-	/**
-	 * nazwa widoku
-	 * 
-	 * @var unknown_type
-	 */
 	protected $_sViewName;
 	
-	/**
-	 * nazwa szablonu
-	 * 
-	 * @var unknown_type
-	 */
 	protected $_sTemplateName;
 	
-	/**
-	 * obiekt polacznia z baza danych
-	 * 
-	 * @var unknown_type
-	 */
 	protected $_db;
-	
-	/**
-	 * obiekt wersji jezykowej
-	 * 
-	 * @var unknown_type
-	 */
-	protected $_oLang;
-	//protected $_session;
-	
-	/**
-	 * obiekt modelu
-	 * 
-	 * @var unknown_type
-	 */
-	protected $_oModel;
-	
-	/**
-	 * obiekt widoku
-	 * 
-	 * @var unknown_type
-	 */
+
 	protected $_oView;
 	
-	/**
-	 * obiekt renderujacy szablony 
-	 * 
-	 * @var unknown_type
-	 */
 	protected $_oRenderer;
 
-	/**
-	 * ustawia nazwe kontrolera
-	 * 
-	 * @return unknown_type
-	 */
-	public function __construct() {
-		//$this->_sCtrlName = str_replace('Controller', '', get_class($this));
-		$this->_sCtrlName = str_replace('Controller', '', get_class($this));
+	public function __construct() {}
+
+	// setters
+	
+	public function setCtrlName($sCtrlName) {
+		$this->_sCtrlName = $sCtrlName;
 	}
 
-	/**
-	 * zwraca nazwe kontrolera
-	 * domyslnie 'caps' zwraca jako kapitaliki
-	 * 'lower' jako male litery
-	 * 
-	 * @param $sCase format nazwy 
-	 * @return unknown_type
-	 */
-	public function getCtrlName($sCase = 'caps') {
-		if ($sCase == 'caps') {
-			return $this->_sCtrlName;
-		} elseif ($sCase == 'lower') {
-			return strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $this->_sCtrlName));
-		} else {
-			return $this->_sCtrlName;
-		}
-	}
-	
-	/**
-	 * zwraca nazwe akcji
-	 * domyslnie 'caps' zwraca jako kapitaliki
-	 * 'lower' jako male litery
-	 * 
-	 * @param $sCase format nazwy 
-	 * @return unknown_type
-	 */
-	public function getActionName($sCase = 'caps') {
-		if ($sCase == 'caps') {
-			return ucfirst($this->_sActionName);
-		} elseif ($sCase == 'lower') {
-			return strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $this->_sActionName));
-		} else {
-			return $this->_sActionName;
-		}
-	}
-	
-	/**
-	 * zwraca nazwe modelu
-	 * 
-	 * @return unknown_type
-	 */
-	public function getModelName() {
-		return $this->_sModelName;
-	}
-	
-	/**
-	 * zwraca nazwe widoku
-	 * 
-	 * @return unknown_type
-	 */
-	public function getViewName() {
-		return $this->_sViewName;
-	}
-	
-	/**
-	 * ustawia nazwe akcji
-	 * 
-	 * @param $sActionName
-	 * @return unknown_type
-	 */
 	public function setActionName($sActionName) {
 		$this->_sActionName = $sActionName;
 	}
 	
-	/**
-	 * ustawia nazwe modelu
-	 * 
-	 * @param $sModelName
-	 * @return unknown_type
-	 */
-	public function setModelName($sModelName) {
-		$this->_sModelName = $sModelName;
-	}
-	
-	/**
-	 * ustawia nazwe widoku
-	 * 
-	 * @param $sViewName
-	 * @return unknown_type
-	 */
 	public function setViewName($sViewName) {
 		$this->_sViewName = $sViewName;
 	}
 	
-	/**
-	 * ustawia nazwe szablonu
-	 * 
-	 * @param $sTemplateName
-	 * @return unknown_type
-	 */
 	public function setTemplateName($sTemplateName) {
 		$this->_sTemplateName = $sTemplateName;
 	}
 	
-	/**
-	 * ustawia obiekt widoku
-	 * 
-	 * @param $oView
-	 * @return unknown_type
-	 */
 	public function setView(View $oView) {
 		$this->_oView = $oView;
 	}
-	
-	/**
-	 * ustawia obiekt modelu
-	 * 
-	 * @param $oModel
-	 * @return unknown_type
-	 */
-	public function setModel(Model $oModel) {
-		$this->_oModel = $oModel;
+
+	// getters
+
+	// universal method to get expected name
+	public function getName($sName, $sCase = 'caps') {
+		$sVar = '_s'.ucfirst($sName).'Name';
+		$sVal = $this->$sVar;
+		if ($sCase == 'caps') {
+			return str_replace(' ', '', ucwords(str_replace('-', ' ', $this->$sVar)));
+		} elseif ($sCase == 'lower') {
+			return strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $this->$sVar));
+		} else {
+			return $this->$sVar;
+		}
 	}
 	
+	public function getCtrlName() {
+		return $this->_sCtrlName;
+	}
+
+	public function getActionName() {
+		return $this->_sActionName;
+	}
+	
+	public function getViewName() {
+		return $this->_sViewName;
+	}
+
+	public function init() {
+		$this->setViewName($this->getName('ctrl').$this->getName('action'));
+
+		if (file_exists(TPL_DIR.THEME_DIR.DS.$this->getCtrlName().'-'.$this->getActionName().'.tpl')) {
+			$this->setTemplateName($this->getCtrlName().'-'.$this->getActionName());
+		} else {
+			if (file_exists(TPL_DIR.THEME_DIR.'/all-'.$this->getActionName().'.tpl')) {
+				$this->setTemplateName('all-'.$this->getActionName());
+			} else {
+				$this->setTemplateName('index');
+			}
+		}
+	}
+
+	public function run() {
+		// methods executed inside
+		// init()
+		// _afterInit()
+
+		// DB params serialized in constant
+		$this->_aParams = unserialize(DB_SOURCE);
+
+		// DB handle
+		$this->_db = Db::getInstance($this->_aParams);
+
+		// session init
+		session_start();
+
+		// template engine
+		$this->_oRenderer = new Smarty;
+
+		Debug::show(TPL_DIR.THEME_DIR);
+		Debug::show(TPL_C_DIR.THEME_DIR);
+
+		$this->_oRenderer->setTemplateDir(TPL_DIR.THEME_DIR);
+		$this->_oRenderer->setCompileDir(TPL_C_DIR.THEME_DIR);
+		// $this->setConfigDir(GUESTBOOK_DIR . 'configs');
+		// $this->setCacheDir(GUESTBOOK_DIR . 'cache');
+  
+		// auth or not ?
+		if (!isset($_SESSION['user'])) {
+			echo 'unauthorized';
+			// $this->_a
+			// $this->_oRenderer->display('auth.tpl');
+			// $this->actionForward('login', 'auth');
+			
+
+			// $this->auth();
+
+			// die();	
+			// echo $_SESSION['auth'];
+		} else {
+			echo 'authorized';
+		}
+
+		$this->init();
+
+		$this->_afterInit();
+
+		// TODO find better way to transform
+		$sActionName = ucwords(str_replace('-', ' ', $this->_sActionName));
+
+		$aParts = explode(' ', $sActionName);
+		$aParts[0] = strtolower($aParts[0]);
+
+		$sActionName = implode('', $aParts);
+
+
+		$sMethodName = $sActionName.'Action';
+		
+		// controller action
+		if (method_exists($this, $sMethodName)) {
+			// insert, update, etc.
+			// if (isset($_POST['act'])) {
+			// 	$sAction = current(array_keys($_POST['act']));
+			// 	if (isset($_GET['action']) && $_GET['action'] !== 'index') {
+			// 		$sMethodName = $sAction.ucfirst($_GET['action']).'Action';
+			// 		$sTplName = $this->getControllerName('lower').'-'.$_GET['action'].'-'.$sAction;
+			// 	} else {
+			// 		$sActionName = $sAction.'Action';
+			// 		$sTplName = $this->getControllerName('lower').'-'.$sAction;
+			// 	}
+	
+			// 	if (method_exists($this, $sActionName)) {
+			// 		$this->setTemplateName($sTplName);
+			// 		$this->$sActionName();
+			// 	}
+			// } else {
+				
+			// 	$this->$sMethodName();
+			// }
+			$this->$sMethodName();
+
+			// including view for action
+			$sViewName = $this->_sViewName.'View';
+			if (file_exists(VIEW_DIR.'/'.$sViewName.'.php')) {
+				require_once VIEW_DIR.'/'.$sViewName.'.php';
+				$this->_oView = new $sViewName($this->_oRenderer);
+				
+				$this->_oView->init();
+			}
+			
+			$this->runAfterMethod();
+		} else {
+			$this->runAfterMethod();
+
+			// 404 // Method not found
+			$this->_oRenderer->assign('content', '404');
+		}
+
+		// print debug info
+		$this->_oRenderer->assign('aLogs', Debug::getLogs());
+
+		$this->_oRenderer->assign('ctrl', strip_tags($_GET['ctrl']));
+		$this->_oRenderer->assign('act', strip_tags($_GET['act']));
+		
+		$this->_oRenderer->display('layout.tpl');
+	}
+
+	// TODO clean... maybe refactor
 	public function actionForward($sAction, $sCtrl = null, $bDieAfterForward = false) {
 //		echo 'ACTION_FORWARD';
-        // TODO transform
-        $sCtrl = is_null($sCtrl) ? $_GET['ctrl'] : $sCtrl;
+		// TODO transform
+		$sCtrl = is_null($sCtrl) ? $_GET['ctrl'] : $sCtrl;
 		$sCtrlName = $sCtrl.'Controller';
 		if (file_exists(CTRL_DIR.DS.$sCtrlName.'.php')) {
 			require_once CTRL_DIR.DS.$sCtrlName.'.php';
@@ -244,132 +229,9 @@ abstract class Controller {
 			die();
 		}
 	}
+
+	protected function _afterInit() {}
 	
-	// dla 
-	protected function _init() {
-	}
-
-	/**
-	 * podstawowe dzialania kontrolera
-	 * 
-	 * @param $params parematry konfiguracyjne dla obiektu Db
-	 * @return unknown_type
-	 */
-	public function run() {
-	
-		$this->_aParams = unserialize(DB_SOURCE);
-
-		$this->_db = Db::getInstance($this->_aParams);
-
-		session_start();
-
-
-		$this->_oRenderer = new Smarty;
-		// $this->_oRenderer->template_dir = TPL_DIR.THEME_DIR;
-		// $this->_oRenderer->compile_dir = TPL_C_DIR.THEME_DIR;
-//		$this->_oRenderer->compile_check = true;
-
-
-
-        $this->_oRenderer->setTemplateDir(TPL_DIR.THEME_DIR);
-        $this->_oRenderer->setCompileDir(TPL_C_DIR.THEME_DIR);
-//        $this->setConfigDir(GUESTBOOK_DIR . 'configs');
-  //      $this->setCacheDir(GUESTBOOK_DIR . 'cache');
-  
-        // init kontorlera
-        if (!isset($_SESSION['user'])) {
-        	// echo 'unauthorized';
-        	// $this->_a
-        	// $this->_oRenderer->display('auth.tpl');
-        	// $this->actionForward('login', 'auth');
-        	
-
-        	// $this->auth();
-
-        	// die();	
-        	// echo $_SESSION['auth'];
-    	}
-    	// print_r($_SESSION['user']);
-
-        $this->_init();
-		
-		if (method_exists($this, $this->_sActionName.'Action')) {
-			// rozpoznanie akcji wewnatrznych i sekcji
-			if (isset($_POST['act'])) {
-//				echo 'akcja wewnetrzna';
-				$sAction = current(array_keys($_POST['act']));
-				if (isset($_GET['action']) && $_GET['action'] !== 'index') {
-					$sActionName = $sAction.ucfirst($_GET['action']).'Action';
-					$sTplName = $this->getControllerName('lower').'-'.$_GET['action'].'-'.$sAction;
-				} else {
-					$sActionName = $sAction.'Action';
-					$sTplName = $this->getControllerName('lower').'-'.$sAction;
-				}
-	
-				if (method_exists($this, $sActionName)) {
-					$this->setTemplateName($sTplName);
-					$this->$sActionName();
-				}
-			} else {
-//				echo 'akcja';
-				$sMethodName = $this->_sActionName.'Action';
-				$this->$sMethodName();
-			}
-			/*
-			// model including
-			$sModelName = $this->_sModelName.'Model';
-			if (file_exists(MODEL_DIR.$sModelName.'.php')) {
-				require_once MODEL_DIR.$sModelName.'.php';
-				$this->_oModel = new $sModelName;
-				
-				$this->_oModel->init($this->_oRenderer);
-				$this->_oModel->perform();
-			}*/
-
-			// view including
-			$sViewName = $this->_sViewName.'View';
-			//echo VIEW_DIR.$sViewName.'.php';
-			if (file_exists(VIEW_DIR.'/'.$sViewName.'.php')) {
-				require_once VIEW_DIR.'/'.$sViewName.'.php';
-				$this->_oView = new $sViewName;
-				
-				$this->_oView->init($this->_oRenderer);
-				$this->_oView->fill();
-			}
-		    
-			$this->runAfterMethod();
-		} else {
-			$this->runAfterMethod();
-
-			// 404 // Method not found
-			$this->_oRenderer->assign('content', '404');
-			//$this->_oRenderer->assign('content', 'offer-index');
-			
-			// $this->_oRenderer->assign('sLocalUrl', LOCAL_URL);
-		}
-
-		// print debug info
-		$this->_oRenderer->assign('aLogs', Debug::getLogs());
-
-		// echo 'GET[CTRL]: '.$_GET['ctrl'].', ';
-		// echo 'GET[ACT]: '.$_GET['act'].', ';
-
-		// echo 'CTRL: '.$this->_sCtrlName.', ';
-		// echo 'ACT: '.$this->_sActionName.', ';
-
-		// echo 'END FLOW';
-		$this->_oRenderer->assign('ctrl', strip_tags($_GET['ctrl']));
-		$this->_oRenderer->assign('act', strip_tags($_GET['act']));
-		
-		//$this->_oRenderer->display('index.tpl');
-		$this->_oRenderer->display('layout.tpl');
-	}
-	
-	/**
-	 * dodatkowe dzialania kontrolera
-	 * 
-	 * @return unknown_type
-	 */
 	public function runAfterMethod() {
 		// wskazanie na  szablon widoku
 		if ($this->_sTemplateName) {
