@@ -191,35 +191,25 @@ abstract class Controller {
 
 	// TODO clean... maybe refactor
 	public function actionForward($sAction, $sCtrl = null, $bDieAfterForward = false) {
-//		echo 'ACTION_FORWARD';
-		// TODO transform
-		$sCtrl = is_null($sCtrl) ? $_GET['ctrl'] : $sCtrl;
+		$sCtrl = is_null($sCtrl) ? ucfirst($_GET['ctrl']) : $sCtrl;
 		$sCtrlName = $sCtrl.'Controller';
 		if (file_exists(CTRL_DIR.DS.$sCtrlName.'.php')) {
 			require_once CTRL_DIR.DS.$sCtrlName.'.php';
 			$oCtrl = new $sCtrlName;
-	//		echo 'CTRL EXISTS';
 			
 			$oCtrl->_oRenderer = $this->_oRenderer;
 		
-			$sActionName = $sAction.'Action';
-			if (method_exists($oCtrl, $sActionName)) {
-	//			$this->setTemplateName($sTplName);
-//	Router::debug($oController);
-				$oCtrl->$sActionName();
-				
-//				echo 'ACTION EXISTS';
+			$sMethodName = $sAction.'Action';
+			if (method_exists($oCtrl, $sMethodName)) {
+				$oCtrl->$sMethodName();
 				
 				// view including
 				$sViewName = $sCtrl.ucfirst($sAction).'View';
 				if (file_exists(VIEW_DIR.DS.$sViewName.'.php')) {
 					require_once VIEW_DIR.DS.$sViewName.'.php';
-					$this->_oView = new $sViewName;
+					$this->_oView = new $sViewName($this->_oRenderer);
 					
-		//			echo 'VIEW EXISTS';
-					
-					$this->_oView->init($this->_oRenderer);
-					$this->_oView->fill();
+					$this->_oView->init();
 				}
 			
 				$this->runAfterMethod();
