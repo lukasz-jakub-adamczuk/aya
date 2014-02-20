@@ -70,6 +70,10 @@ abstract class Controller {
 		return $this->_sViewName;
 	}
 
+	public function getTemplateName() {
+		return $this->_sTemplateName;
+	}
+
 	public function init() {
 		$this->setViewName($this->getName('ctrl').$this->getName('action'));
 
@@ -150,11 +154,11 @@ abstract class Controller {
 			// 		$sTplName = $this->getControllerName('lower').'-'.$_GET['action'].'-'.$sAction;
 			// 	} else {
 			// 		$sActionName = $sAction.'Action';
-			// 		$sTplName = $this->getControllerName('lower').'-'.$sAction;
+					// $sTplName = $this->getName('ctrl').'-'.$this->getName('action');
 			// 	}
 	
 			// 	if (method_exists($this, $sActionName)) {
-			// 		$this->setTemplateName($sTplName);
+					// $this->setTemplateName($sTplName);
 			// 		$this->$sActionName();
 			// 	}
 			// } else {
@@ -173,6 +177,10 @@ abstract class Controller {
 			}
 			
 			$this->runAfterMethod();
+
+			// echo 'before send...'.$this->getTemplateName();
+
+			// $this->_oRenderer->assign('content', $this->getTemplateName());
 		} else {
 			$this->runAfterMethod();
 
@@ -180,9 +188,14 @@ abstract class Controller {
 			$this->_oRenderer->assign('content', '404');
 		}
 
+		echo 'FLow ends';
+
 		// print debug info
 		$this->_oRenderer->assign('aLogs', Debug::getLogs());
 
+		Debug::show($_GET['ctrl'], 'ctrl');
+		Debug::show($_GET['act'], 'act');
+		
 		$this->_oRenderer->assign('ctrl', strip_tags($_GET['ctrl']));
 		$this->_oRenderer->assign('act', strip_tags($_GET['act']));
 		
@@ -191,17 +204,22 @@ abstract class Controller {
 
 	// TODO clean... maybe refactor
 	public function actionForward($sAction, $sCtrl = null, $bDieAfterForward = false) {
-		$sCtrl = is_null($sCtrl) ? ucfirst($_GET['ctrl']) : $sCtrl;
-		$sCtrlName = $sCtrl.'Controller';
+		$sCtrl = is_null($sCtrl) ? ucfirst($_GET['ctrl']) : ucfirst($sCtrl);
+		echo $sCtrlName = $sCtrl.'Controller';
 		if (file_exists(CTRL_DIR.DS.$sCtrlName.'.php')) {
+			echo 'ctrl found';
 			require_once CTRL_DIR.DS.$sCtrlName.'.php';
 			$oCtrl = new $sCtrlName;
 			
 			$oCtrl->_oRenderer = $this->_oRenderer;
 		
-			$sMethodName = $sAction.'Action';
+			echo $sMethodName = $sAction.'Action';
 			if (method_exists($oCtrl, $sMethodName)) {
 				$oCtrl->$sMethodName();
+
+				echo 'action done';
+
+				echo 'TPL: '.$this->getTemplateName();
 				
 				// view including
 				$sViewName = $sCtrl.ucfirst($sAction).'View';
@@ -213,6 +231,8 @@ abstract class Controller {
 				}
 			
 				$this->runAfterMethod();
+
+				
 			}
 		}
 		if ($bDieAfterForward) {
@@ -224,6 +244,7 @@ abstract class Controller {
 	
 	public function runAfterMethod() {
 		// wskazanie na  szablon widoku
+		// echo $this->getTemplateName();
 		if ($this->_sTemplateName) {
 			$this->_oRenderer->assign('content', $this->_sTemplateName);
 			//$this->_oRenderer->assign('content', $this->getControllerName('lower').'-'.$this->getActionName('lower'));
