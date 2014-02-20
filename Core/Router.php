@@ -15,8 +15,8 @@ class Router {
 			$sAction = DEFAULT_ACTION;
 		}
 
-		Debug::show($sController);
-		Debug::show($sAction);
+		Debug::show($sController, '$_GET[ctrl] in Router');
+		Debug::show($sAction, '$_GET[act] in Router');
 
 		$sControllerName = str_replace(' ', '', ucwords(str_replace('-', ' ', $sController))).'Controller';
 		

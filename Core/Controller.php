@@ -74,24 +74,11 @@ abstract class Controller {
 		return $this->_sTemplateName;
 	}
 
-	public function init() {
-		$this->setViewName($this->getName('ctrl').$this->getName('action'));
-
-		if (file_exists(TPL_DIR.THEME_DIR.DS.$this->getCtrlName().'-'.$this->getActionName().'.tpl')) {
-			$this->setTemplateName($this->getCtrlName().'-'.$this->getActionName());
-		} else {
-			if (file_exists(TPL_DIR.THEME_DIR.'/all-'.$this->getActionName().'.tpl')) {
-				$this->setTemplateName('all-'.$this->getActionName());
-			} else {
-				$this->setTemplateName('index');
-			}
-		}
-	}
-
 	public function run() {
 		// methods executed inside
 		// init()
 		// _afterInit()
+		Debug::show('flow begins...');
 
 		// DB params serialized in constant
 		$this->_aParams = unserialize(DB_SOURCE);
@@ -102,11 +89,13 @@ abstract class Controller {
 		// session init
 		session_start();
 
+		// session_unset($_SESSION['user']);
+
 		// template engine
 		$this->_oRenderer = new Smarty;
 
-		Debug::show(TPL_DIR.THEME_DIR);
-		Debug::show(TPL_C_DIR.THEME_DIR);
+		Debug::show(TPL_DIR.THEME_DIR, 'template_dir');
+		Debug::show(TPL_C_DIR.THEME_DIR, 'template_c_dir');
 
 		$this->_oRenderer->setTemplateDir(TPL_DIR.THEME_DIR);
 		$this->_oRenderer->setCompileDir(TPL_C_DIR.THEME_DIR);
@@ -115,7 +104,7 @@ abstract class Controller {
   
 		// auth or not ?
 		if (!isset($_SESSION['user'])) {
-			echo 'unauthorized';
+			Debug::show('unauthorized', 'user', 'warning');
 			// $this->_a
 			// $this->_oRenderer->display('auth.tpl');
 			// $this->actionForward('login', 'auth');
@@ -126,7 +115,7 @@ abstract class Controller {
 			// die();	
 			// echo $_SESSION['auth'];
 		} else {
-			echo 'authorized';
+			Debug::show('authorized', 'user', 'info');
 		}
 
 		$this->init();
@@ -143,6 +132,7 @@ abstract class Controller {
 
 
 		$sMethodName = $sActionName.'Action';
+
 		
 		// controller action
 		if (method_exists($this, $sMethodName)) {
@@ -188,49 +178,74 @@ abstract class Controller {
 			$this->_oRenderer->assign('content', '404');
 		}
 
-		echo 'FLow ends';
+		$this->_oRenderer->assign('ctrl', $this->_sCtrlName);
+		$this->_oRenderer->assign('act', $this->_sActionName);
 
-		// print debug info
+		Debug::show('flow ends...');
+		
+		// assign debug info
 		$this->_oRenderer->assign('aLogs', Debug::getLogs());
 
-		Debug::show($_GET['ctrl'], 'ctrl');
-		Debug::show($_GET['act'], 'act');
-		
-		$this->_oRenderer->assign('ctrl', strip_tags($_GET['ctrl']));
-		$this->_oRenderer->assign('act', strip_tags($_GET['act']));
-		
 		$this->_oRenderer->display('layout.tpl');
 	}
 
+	public function init() {
+		$this->setViewName($this->getName('ctrl').$this->getName('action'));
+
+		// try '<ctrl_name>-<action_name>.tpl'
+		$sTplName = $this->getCtrlName().'-'.$this->getActionName();
+		if (!file_exists(TPL_DIR.THEME_DIR.DS.$sTplName.'.tpl')) {
+			// try 'all-<action_name>.tpl'
+			$sTplName = 'all-'.$this->getActionName();
+			if (!file_exists(TPL_DIR.THEME_DIR.DS.$sTplName.'.tpl')) {
+				// try index.tpl
+				$sTplName = 'index';
+			}
+		}
+		$this->setTemplateName($sTplName);
+
+		Debug::show($sTplName, 'template init');
+	}
+
+	protected function _afterInit() {}
+
 	// TODO clean... maybe refactor
 	public function actionForward($sAction, $sCtrl = null, $bDieAfterForward = false) {
-		$sCtrl = is_null($sCtrl) ? ucfirst($_GET['ctrl']) : ucfirst($sCtrl);
-		echo $sCtrlName = $sCtrl.'Controller';
+		$sCtrl = is_null($sCtrl) ? $_GET['ctrl'] : $sCtrl;
+
+		$sCtrlName = ucfirst($sCtrl).'Controller';
+		Debug::show($sCtrlName, 'ctrl in actionForward()');
 		if (file_exists(CTRL_DIR.DS.$sCtrlName.'.php')) {
-			echo 'ctrl found';
 			require_once CTRL_DIR.DS.$sCtrlName.'.php';
 			$oCtrl = new $sCtrlName;
+
+			$oCtrl->setCtrlName($sCtrl);
+			$oCtrl->setActionName($sAction);
 			
 			$oCtrl->_oRenderer = $this->_oRenderer;
 		
-			echo $sMethodName = $sAction.'Action';
+			$sMethodName = $sAction.'Action';
+			Debug::show($sMethodName, 'action in actionForward()');
 			if (method_exists($oCtrl, $sMethodName)) {
+				Debug::show($this->getTemplateName(), 'before $this->action()', 'info');
+
+				$oCtrl->init();
+
 				$oCtrl->$sMethodName();
 
-				echo 'action done';
-
-				echo 'TPL: '.$this->getTemplateName();
+				// set template name to parent initial ctrl
+				$this->setTemplateName($oCtrl->getTemplateName());
 				
 				// view including
 				$sViewName = $sCtrl.ucfirst($sAction).'View';
 				if (file_exists(VIEW_DIR.DS.$sViewName.'.php')) {
 					require_once VIEW_DIR.DS.$sViewName.'.php';
-					$this->_oView = new $sViewName($this->_oRenderer);
+					$oCtrl->_oView = new $sViewName($this->_oRenderer);
 					
-					$this->_oView->init();
+					$oCtrl->_oView->init();
 				}
 			
-				$this->runAfterMethod();
+				$oCtrl->runAfterMethod('actionForward');
 
 				
 			}
@@ -239,12 +254,10 @@ abstract class Controller {
 			die();
 		}
 	}
-
-	protected function _afterInit() {}
 	
-	public function runAfterMethod() {
+	public function runAfterMethod($sName = '') {
 		// wskazanie na  szablon widoku
-		// echo $this->getTemplateName();
+		Debug::show($this->_sTemplateName, 'runAfterMethod in... ' . $sName);
 		if ($this->_sTemplateName) {
 			$this->_oRenderer->assign('content', $this->_sTemplateName);
 			//$this->_oRenderer->assign('content', $this->getControllerName('lower').'-'.$this->getActionName('lower'));

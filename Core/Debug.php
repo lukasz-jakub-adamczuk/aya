@@ -8,7 +8,7 @@ class Debug {
 		
 	}
 
-	public static function show($mVariable, $sName = null) {
+	public static function show($mVariable, $sName = null, $sType = null) {
 		$aBacktrace = debug_backtrace();
 
 		if (is_array($mVariable)) {
@@ -23,6 +23,9 @@ class Debug {
 		$aBacktrace[0]['file_short'] = end($aFileParts);
 		if ($sName) {
 			$aBacktrace[0]['name'] = $sName;
+		}
+		if ($sType) {
+			$aBacktrace[0]['type'] = $sType;
 		}
 		self::$_aLogs[] = $aBacktrace[0];
 	}
