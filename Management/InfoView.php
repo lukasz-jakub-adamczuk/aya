@@ -5,7 +5,6 @@ require_once AYA_DIR.'/Html/Form/HtmlForm.php';
 class InfoView extends View {
 	
 	public function fill() {
-		echo 'fill';
 		// entity
 		if (isset($_GET['id']) || isset($_POST['id'])) {
 			//$iId = isset($_GET['id']) ? intval($_GET['id']) : intval($_POST['id']);
@@ -19,7 +18,7 @@ class InfoView extends View {
 		}
 
 		$this->_oRenderer->assign('aFields', $oInstance->getFields());
-
+// echo 'a';
 
 		
 		$sId = str_replace('_', '-', $this->_sDaoIndex);
