@@ -103,8 +103,9 @@ class Collection {
 
 
 		// tmp hack
+		$iPage = 0;
 		if (isset($this->_aNavigator['page'])) {
-			echo $this->_aNavigator['page'];
+			// echo $this->_aNavigator['page'];
 			$iPage = $this->_aNavigator['page'];
 		}
 		// echo $this->_iSize;
