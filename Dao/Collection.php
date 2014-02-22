@@ -75,8 +75,8 @@ class Collection {
 			$this->_sQuery = $this->_prepare();
 		}
 
-
 		Debug::show($this->_sQuery);
+		
 
 		$this->_aRows = $this->_db->getArray($this->_sQuery, $this->_mId);
 
@@ -100,6 +100,8 @@ class Collection {
 		// load values from session storage
 		$this->_loadNavigator();
 		Debug::show($this->_aNavigator, '$this->_aNavigator');
+
+		// print $this->getOrderPart();
 
 
 		// tmp hack

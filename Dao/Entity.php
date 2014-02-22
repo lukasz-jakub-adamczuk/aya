@@ -116,6 +116,7 @@ class Entity {
 		} else {
 			$this->_aQueryFields[$sField] = $mValue;
 		}
+		// $this->_aQueryFields[$sField] = $mValue;
 	}
 
 	public function setFields($aFields) {
@@ -141,14 +142,16 @@ class Entity {
 		$q .= ') VALUES (';
 		foreach ($this->_aQueryFields as $key => $val) {
 			if ($val == '_NULL_') {
-				$q .= '`'.$key.'`=NULL, ';
+				$q .= 'NULL, ';
 			} else {
-				$q .= '`'.$key.'`="'.addslashes($val).'", ';
+				$q .= '"'.addslashes($val).'", ';
 			}
 		}
 		$q = substr($q, 0, -2);
 		$q .= ');';
 		$this->_sQuery = $q;
+
+		Debug::show($this->_sQuery);
 		
 		if ($this->_db->execute($q)) {
 			return $this->_mId = mysql_insert_id();
@@ -159,7 +162,7 @@ class Entity {
 	
 	public function update() {
 		$q = 'UPDATE '.$this->_sTable.' SET ';
-		foreach ($this->_aDbFields as $key => $val) {
+		foreach ($this->_aQueryFields as $key => $val) {
 			if ($val == '_NULL_') {
 				$q .= '`'.$key.'`=NULL, ';
 			} else {
@@ -167,8 +170,9 @@ class Entity {
 			}
 		}
 		$q = substr($q, 0, -2);
-		$q .= ' WHERE '.$this->_sIdLabel.'="'.$this->_mId.'"';
+		$q .= ' WHERE id_'.$this->_sIdLabel.'="'.$this->_mId.'"';
 		$this->_sQuery = $q;
+		// echo $this->_sQuery;
 
 		if ($this->_db->execute($this->_sQuery)) {
 			return true;
