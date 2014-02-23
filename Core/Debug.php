@@ -19,6 +19,7 @@ class Debug {
 			// echo $aBacktrace[0]['file'].' '.$aBacktrace[0]['line'].' '.$mVariable;
 		}
 		$aBacktrace[0]['var'] = print_r($mVariable, true);
+		$aBacktrace[0]['array'] = is_array($mVariable);
 		$aFileParts = explode('/', $aBacktrace[0]['file']);
 		$aBacktrace[0]['file_short'] = end($aFileParts);
 		if ($sName) {

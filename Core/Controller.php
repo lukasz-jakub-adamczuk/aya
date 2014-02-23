@@ -80,6 +80,8 @@ abstract class Controller {
 		// _afterInit()
 		Debug::show('flow begins...');
 
+		Time::start('controller');
+
 		// DB params serialized in constant
 		$this->_aParams = unserialize(DB_SOURCE);
 
@@ -117,10 +119,11 @@ abstract class Controller {
 		} else {
 			Debug::show('authorized', 'user', 'info');
 		}
-
+		Time::start('ctrl-init');
 		$this->init();
 
 		$this->_afterInit();
+		Time::stop('ctrl-init');
 
 		// TODO find better way to transform
 		$sActionName = ucwords(str_replace('-', ' ', $this->_sActionName));
@@ -133,55 +136,40 @@ abstract class Controller {
 
 		$sMethodName = $sActionName.'Action';
 
-		
 		// controller action
 		if (method_exists($this, $sMethodName)) {
-			// insert, update, etc.
-			// if (isset($_POST['act'])) {
-			// 	$sAction = current(array_keys($_POST['act']));
-			// 	if (isset($_GET['action']) && $_GET['action'] !== 'index') {
-			// 		$sMethodName = $sAction.ucfirst($_GET['action']).'Action';
-			// 		$sTplName = $this->getControllerName('lower').'-'.$_GET['action'].'-'.$sAction;
-			// 	} else {
-			// 		$sActionName = $sAction.'Action';
-					// $sTplName = $this->getName('ctrl').'-'.$this->getName('action');
-			// 	}
-	
-			// 	if (method_exists($this, $sActionName)) {
-					// $this->setTemplateName($sTplName);
-			// 		$this->$sActionName();
-			// 	}
-			// } else {
-				
-			// 	$this->$sMethodName();
-			// }
 			$this->$sMethodName();
+			Time::stop('ctrl-method');
 
 			// including view for action
 			$sViewName = $this->_sViewName.'View';
+			
 			if (file_exists(VIEW_DIR.'/'.$sViewName.'.php')) {
 				require_once VIEW_DIR.'/'.$sViewName.'.php';
+				
 				$this->_oView = new $sViewName($this->_oRenderer);
 				
 				$this->_oView->init();
 			}
-			
 			$this->runAfterMethod();
-
-			// echo 'before send...'.$this->getTemplateName();
-
-			// $this->_oRenderer->assign('content', $this->getTemplateName());
 		} else {
 			$this->runAfterMethod();
 
 			// 404 // Method not found
 			$this->_oRenderer->assign('content', '404');
 		}
+		Time::stop('ctrl-action');
 
 		$this->_oRenderer->assign('ctrl', $this->_sCtrlName);
 		$this->_oRenderer->assign('act', $this->_sActionName);
 
 		Debug::show('flow ends...');
+
+		Time::stop('controller');
+
+		Time::total(true);
+
+		Debug::show(Time::stats(), 'Time stats');
 		
 		// assign debug info
 		$this->_oRenderer->assign('aLogs', Debug::getLogs());

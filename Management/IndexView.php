@@ -32,16 +32,17 @@ class IndexView extends View {
 		
 		// maybe need now or in the future
 		$sCtrl = $_GET['ctrl'];
+		$sCtrl = str_replace('_', '-', $this->_sDaoIndex);
 		$sAct = ($_GET['act'] == 'insert' || $_GET['act'] == 'update') ? 'index' : $_GET['act'];
 
-		// echo $this->_sDaoName;
+		// sql cache
+		// $sSqlCacheFile = TMP_DIR . '/sql/collection/'.$sCtrl.'-'.$sAct.'';
+		$sSqlCacheFile = TMP_DIR . '/'.$sCtrl.'-'.$sAct.'';
 		
-		// kolekcja
+		Time::start('sql-collection');
+
+		// index collection
 		$oIndexCollection = Dao::collection($this->_sDaoName, $this->_sOwner);
-
-
-		$sLowerDashCtrlName = str_replace('_', '-', $this->_sDaoIndex);
-		
 
 		$oIndexCollection->setGroupPart(' GROUP BY '.$this->_sDaoIndex.'.id_'.$this->_sDaoIndex);
 		// $oIndexCollection->setOrderPart(' ORDER BY '.$_GET['nav']['sort'].' DESC');
@@ -49,19 +50,25 @@ class IndexView extends View {
 		if ($sSearch) {
 			// $oIndexCollection->search('');
 		}
-		
+			
 		$oIndexCollection->navDefault('sort', 'creation-date');
 		$oIndexCollection->navDefault('order', 'desc');
-
-		// $oIndexCollection->navDefault('size', 25);
-
-		// $oIndexCollection->orderby('creation_date', 'desc');
 		
-		
-		// get records
-		$oIndexCollection->load(20);
+		if (!file_exists($sSqlCacheFile)) {
+			$aRows = unserialize(file_get_contents($sSqlCacheFile));
+		} else {
+			// get records
+			$oIndexCollection->load(20);
+
+			$aRows = $oIndexCollection->getRows();
+			
+			file_put_contents($sSqlCacheFile, serialize($aRows));
+		}
+
+		Time::stop('sql-collection');
 		
 
+		// filters
 		$aFilters = $this->_getFilters();
 		
 		$aNavigator = $oIndexCollection->getNavigator();
@@ -74,18 +81,17 @@ class IndexView extends View {
 		}
 		
 		$this->_oRenderer->assign('aFilters', $aFilters);
-
-
-		$aRows = $oIndexCollection->getRows();
-		
 		
 		
 		// table configuration
 		require_once __DIR__ . '/../../XhtmlTable/Aya/Yaml/AyaYamlLoader.php';
+		Time::stop('yaml-loader');
 		
-		$file = APP_DIR . '/conf/layout/tables/'.$sLowerDashCtrlName.'.yml';
+		$file = APP_DIR . '/conf/layout/tables/'.$sCtrl.'.yml';
 		if (file_exists($file)) {
+			Time::start('view-yaml-parsing');
 			$aConfig = AyaYamlLoader::parse($file);
+			Time::stop('view-yaml-parsing');
 		} else {
 			if (is_array($aRows) && count($aRows) > 0) {
 				$aDefaultConfig = array_keys(current($aRows));
@@ -93,12 +99,12 @@ class IndexView extends View {
 			}
 		}
 
-		
 		$oAyaXhtmlTable = new AyaXhtmlTable();
+		
 		
 		// $oAyaXhtmlTable->setCacheDir(APP_DIR.DS.'tmp');
 
-		$oAyaXhtmlTable->setSortLink(BASE_URL.'/'.$sLowerDashCtrlName);
+		$oAyaXhtmlTable->setSortLink(BASE_URL.'/'.$sCtrl);
 		$oAyaXhtmlTable->setBaseLink(BASE_URL);
 		
 		$oAyaXhtmlTable->configure($aConfig);
@@ -108,26 +114,28 @@ class IndexView extends View {
 		$aGlobalTexts = AyaYamlLoader::parse($filename);
 		
 		// local texts are available conditionally
-		$filename = APP_DIR . '/langs/pl/tables/'.$sLowerDashCtrlName.'.yml';
+		$filename = APP_DIR . '/langs/pl/tables/'.$sCtrl.'.yml';
 		if (file_exists($filename)) {
 			$aLocalTexts = AyaYamlLoader::parse($filename);
 		
 			$oAyaXhtmlTable->translate($aGlobalTexts, $aLocalTexts);
 		}
 		
-		$oAyaXhtmlTable->assign($oIndexCollection->getRows(), $oIndexCollection->getNavigator());
+		$oAyaXhtmlTable->assign($aRows, $oIndexCollection->getNavigator());
+		Time::stop('view-html-table-assign');
 
+		$this->_oRenderer->assign('sTable', $oAyaXhtmlTable->render());
+		Time::stop('view-html-table');
 
+		// navigator data
 		$aNavigator = $oIndexCollection->getNavigator();
+		$this->_oRenderer->assign('aNavigator', $aNavigator);
+		Time::stop('get-navigator');
 
 		// pagination		
 		$oPaginator = new Paginator($aNavigator);
-		$sPaginator = $oPaginator->configure('archive', BASE_URL.'/'.$sLowerDashCtrlName)->generate();
-
-		// data transfer to templates
-		$this->_oRenderer->assign('sTable', $oAyaXhtmlTable->render());
+		$sPaginator = $oPaginator->configure('archive', BASE_URL.'/'.$sCtrl)->generate();
 		$this->_oRenderer->assign('sPaginator', $sPaginator);
-		$this->_oRenderer->assign('aNavigator', $aNavigator);
 	}
 	
 	public function beforeFill() {

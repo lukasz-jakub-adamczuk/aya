@@ -86,7 +86,9 @@ class Collection {
 		if ($this->_iSize) {
 		// 	$this->_aNavigator['total'] = count($this->_aRows);
 		// } else {
+			Time::start('sql-collection-total');
 			$this->_aNavigator['total'] = $this->getCount();
+			Time::stop('sql-collection-total');
 		}
 
 		// $this->_select();
