@@ -42,6 +42,8 @@ class Collection {
 
 	protected $_sOrder = '';
 
+	protected $_sLimit = '';
+
 	public function __construct($sName = null, $sNavigatorOwner = null) {
 		// ustawia nazwe, kluczowa do dalszych dzialan
 		$this->_sName = $sName === null ? str_replace('Collection', '', get_class($this)) : $sName;
@@ -50,7 +52,7 @@ class Collection {
 
 		// echo '__'.$this->_sTable.'__';
 
-		$this->_mId = 'id_'.$this->_sTable;
+		echo $this->_mId = 'id_'.$this->_sTable;
 		
 		// $this->_aSearch = $aSearch;
 		$this->_aSearch = array('title');
@@ -58,53 +60,22 @@ class Collection {
 		if ($sNavigatorOwner) {
 			$this->_sOwner = $sNavigatorOwner;
 		}
+		Debug::show($this->_sOwner, 'contruct owner');
 		$this->_db = Db::getInstance();
+
+		$this->_init();
 	}
 
-	public function load($iSize = null) {
-		// using unicode charset
-		$this->_db->execute("SET NAMES utf8");
-
-		if ($iSize) {
-			$this->_iSize = $iSize;
-		}
-
-		$this->_sSelect = 'SELECT *';
-
-		if (!$this->_sQuery) {
-			$this->_sQuery = $this->_prepare();
-		}
-
-		Debug::show($this->_sQuery);
-		
-
-		$this->_aRows = $this->_db->getArray($this->_sQuery, $this->_mId);
-
-		$this->_aNavigator['loaded'] = count($this->_aRows);
-		
-		// total
-		if ($this->_iSize) {
-		// 	$this->_aNavigator['total'] = count($this->_aRows);
-		// } else {
-			Time::start('sql-collection-total');
-			$this->_aNavigator['total'] = $this->getCount();
-			Time::stop('sql-collection-total');
-		}
-
-		// $this->_select();
-		$this->_bLoaded = 1;
-	}
-
-	protected function _prepare() {
+	protected function _init() {
 		// default navigator values (sorting)
 		$this->_defaultNavigator();
-		Debug::show($this->_aNavigator, '$this->_aNavigator');
+		// Debug::show($this->_aNavigator, '$this->_aNavigator');
 		// load values from session storage
 		$this->_loadNavigator();
-		Debug::show($this->_aNavigator, '$this->_aNavigator');
+		Debug::show($this->_aNavigator, '$this->_aNavigator from Collection _prepare()');
 
 		// print $this->getOrderPart();
-
+		// print_r($this->_aNavigator);
 
 		// tmp hack
 		$iPage = 0;
@@ -117,18 +88,15 @@ class Collection {
 		
 		// $this->_sSelect = implode(',', $this->_aQueryFields);
 
-		if ($this->_iSize === -1) {
-			$sLimit = '';
-		} else {
+		if ($this->_iSize !== -1) {
 			$iPage = $iPage > 0 ? $iPage-1 : 0;
-			$sLimit = ' LIMIT '.($iPage) * $this->_iSize.','.$this->_iSize;
+			$this->_sLimit = ' LIMIT '.($iPage) * $this->_iSize.','.$this->_iSize;
 		}
-		return $this->getSelectPart().' '.$this->getFromPart().' '.$this->getJoinPart().''.$this->_getWhere().''.$this->getGroupPart().''.$this->getOrderPart().''.$sLimit.'';
+		
 	}
 
-	public function getCount() {
-		$this->_sQuery = 'SELECT COUNT('.$this->_mId.') AS total '.$this->getFromPart().''.$this->_getWhere().'';
-		return $this->_db->getOne($this->_sQuery, 'total');
+	protected function _prepare() {
+		return $this->getSelectPart().' '.$this->getFromPart().' '.$this->getJoinPart().''.$this->_getWhere().''.$this->getGroupPart().''.$this->getOrderPart().''.$this->getLimitPart().'';
 	}
 
 	protected function _defaultNavigator() {
@@ -146,7 +114,7 @@ class Collection {
 	
 	protected function _loadNavigator() {
 		$this->_aNavigator = Navigator::load($this->_sOwner);
-		Debug::show($this->_sOwner, 'Owner');
+		
 		
 		if (isset($this->_aNavigator['size'])) {
 			$this->_iSize = $this->_aNavigator['size'];
@@ -170,6 +138,49 @@ class Collection {
 			}
 		}
 	}
+
+	public function load($iSize = null) {
+		// using unicode charset
+		$this->_db->execute("SET NAMES utf8");
+
+		Debug::show($this->_sOwner, 'load() method');
+
+		if ($iSize) {
+			$this->_iSize = $iSize;
+		}
+
+		$this->_sSelect = 'SELECT *';
+
+		if (!$this->_sQuery) {
+			$this->_sQuery = $this->_prepare();
+		}
+
+		Debug::show($this->_sQuery);
+		
+
+		$this->_aRows = $this->_db->getArray($this->_sQuery, $this->_mId);
+		// print_r($this->_aRows);
+
+		$this->_aNavigator['loaded'] = count($this->_aRows);
+		
+		// total
+		if ($this->_iSize) {
+		// 	$this->_aNavigator['total'] = count($this->_aRows);
+		// } else {
+			Time::start('sql-collection-total');
+			$this->_aNavigator['total'] = $this->getCount();
+			Time::stop('sql-collection-total');
+		}
+
+		// $this->_select();
+		$this->_bLoaded = 1;
+	}
+
+	public function getCount() {
+		// $this->_sQuery = 'SELECT COUNT('.$this->_mId.') AS total '.$this->getFromPart().''.$this->_getWhere().'';
+		// return $this->_db->getOne($this->_sQuery, 'total');
+	}
+
 
 	public function navSet($sName, $mValue) {
 		Navigator::set($sName, $mValue);
@@ -207,7 +218,9 @@ class Collection {
 	}
 	
 	public function getColumn($sColumn = 'name', $iPage = -1) {
-		$this->get($iPage);
+		if ($this->_bLoaded == 0) {
+			$this->load();
+		}
 		$aColumn = array();
 		foreach ($this->_aRows as $rows => $row) {
 			$aColumn[$rows] = $row[$sColumn];
@@ -248,6 +261,10 @@ class Collection {
 
 	public function getOrderPart() {
 		return $this->_sOrder;
+	}
+
+	public function getLimitPart() {
+		return $this->_sLimit;
 	}
 
 

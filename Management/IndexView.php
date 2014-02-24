@@ -1,6 +1,6 @@
 <?php
 require_once AYA_DIR.'/Core/View.php';
-require_once AYA_DIR.'/Core/Dao.php';
+// require_once AYA_DIR.'/Core/Dao.php';
 
 //require_once AYA_DIR.'/Xhtml/Table/AyaXhtmlTable.php';
 require_once AYA_DIR.'/../XhtmlTable/Aya/Xhtml/Table/AyaXhtmlTable.php';
@@ -40,6 +40,8 @@ class IndexView extends View {
 		$sSqlCacheFile = TMP_DIR . '/'.$sCtrl.'-'.$sAct.'';
 		
 		Time::start('sql-collection');
+
+		echo $this->_sOwner;
 
 		// index collection
 		$oIndexCollection = Dao::collection($this->_sDaoName, $this->_sOwner);
@@ -129,6 +131,7 @@ class IndexView extends View {
 
 		// navigator data
 		$aNavigator = $oIndexCollection->getNavigator();
+		Debug::show($aNavigator, 'nav from collection');
 		$this->_oRenderer->assign('aNavigator', $aNavigator);
 		Time::stop('get-navigator');
 
