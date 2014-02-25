@@ -1,8 +1,6 @@
 <?php
 require_once AYA_DIR.'/Core/View.php';
-// require_once AYA_DIR.'/Core/Dao.php';
 
-//require_once AYA_DIR.'/Xhtml/Table/AyaXhtmlTable.php';
 require_once AYA_DIR.'/../XhtmlTable/Aya/Xhtml/Table/AyaXhtmlTable.php';
 
 class IndexView extends View {
