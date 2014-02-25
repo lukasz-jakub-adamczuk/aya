@@ -41,7 +41,6 @@ class IndexView extends View {
 		
 		Time::start('sql-collection');
 
-		echo $this->_sOwner;
 
 		// index collection
 		$oIndexCollection = Dao::collection($this->_sDaoName, $this->_sOwner);

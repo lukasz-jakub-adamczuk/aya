@@ -52,7 +52,7 @@ class Collection {
 
 		// echo '__'.$this->_sTable.'__';
 
-		echo $this->_mId = 'id_'.$this->_sTable;
+		$this->_mId = 'id_'.$this->_sTable;
 		
 		// $this->_aSearch = $aSearch;
 		$this->_aSearch = array('title');
@@ -74,24 +74,7 @@ class Collection {
 		$this->_loadNavigator();
 		Debug::show($this->_aNavigator, '$this->_aNavigator from Collection _prepare()');
 
-		// print $this->getOrderPart();
-		// print_r($this->_aNavigator);
-
-		// tmp hack
-		$iPage = 0;
-		if (isset($this->_aNavigator['page'])) {
-			// echo $this->_aNavigator['page'];
-			$iPage = $this->_aNavigator['page'];
-		}
-		// echo $this->_iSize;
-		// $this->_iSize = -1;
 		
-		// $this->_sSelect = implode(',', $this->_aQueryFields);
-
-		if ($this->_iSize !== -1) {
-			$iPage = $iPage > 0 ? $iPage-1 : 0;
-			$this->_sLimit = ' LIMIT '.($iPage) * $this->_iSize.','.$this->_iSize;
-		}
 		
 	}
 
@@ -149,6 +132,18 @@ class Collection {
 			$this->_iSize = $iSize;
 		}
 
+		// tmp hack
+		$iPage = 0;
+		if (isset($this->_aNavigator['page'])) {
+			// echo $this->_aNavigator['page'];
+			$iPage = $this->_aNavigator['page'];
+		}
+
+		if ($this->_iSize !== -1) {
+			$iPage = $iPage > 0 ? $iPage-1 : 0;
+			$this->_sLimit = ' LIMIT '.($iPage) * $this->_iSize.','.$this->_iSize;
+		}
+
 		$this->_sSelect = 'SELECT *';
 
 		if (!$this->_sQuery) {
@@ -177,8 +172,8 @@ class Collection {
 	}
 
 	public function getCount() {
-		// $this->_sQuery = 'SELECT COUNT('.$this->_mId.') AS total '.$this->getFromPart().''.$this->_getWhere().'';
-		// return $this->_db->getOne($this->_sQuery, 'total');
+		$this->_sQuery = 'SELECT COUNT('.$this->_mId.') AS total '.$this->getFromPart().''.$this->_getWhere().'';
+		return $this->_db->getOne($this->_sQuery, 'total');
 	}
 
 

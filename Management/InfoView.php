@@ -34,7 +34,7 @@ class InfoView extends View {
 
 		// print_r($oInstance->getFields());
 
-		
+		/*
 		$sId = str_replace('_', '-', $this->_sDaoIndex);
 
 		require_once __DIR__ . '/../../XhtmlTable/Aya/Yaml/AyaYamlLoader.php';
@@ -82,6 +82,8 @@ class InfoView extends View {
 		
 		
 		$this->_oRenderer->assign('sForm', $oForm->render());
+		*/
+
 	}
 
 	public function beforeFill() {
