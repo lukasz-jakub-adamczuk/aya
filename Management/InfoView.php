@@ -28,61 +28,11 @@ class InfoView extends View {
 		$this->_oRenderer->assign('sFormMode', $sFormMode);
 
 		Debug::show($oInstance->getFields());
-
-		
-// echo 'a';
-
-		// print_r($oInstance->getFields());
-
-		/*
-		$sId = str_replace('_', '-', $this->_sDaoIndex);
-
-		require_once __DIR__ . '/../../XhtmlTable/Aya/Yaml/AyaYamlLoader.php';
-
-		$sYamlFile = APP_DIR.'/conf/layout/forms/'.str_replace('_', '-', $this->_sDaoIndex).'.yml';
-		// $aConfig = AyaYamlLoader::parse($sYamlFile);
-
-		// print_r($aConfig);
-		// $aConfig = arra
-		
-		// form
-		// $oForm = new HtmlForm($sId, $aConfig);
-		$oForm = new HtmlForm($sId);
-		
-		// $oForm->configure($sFormMode);
-		
-		$oForm->setCacheDir(APP_DIR.'/tmp');
-		
-		// update
-		// if ($sFormMode == 'update') {
-		// 	$oForm->setFormValues(array('id' => $oInstance->getId()));
-		
-		// 	$oForm->setFormValues($oInstance->getFields());
-		// }
 		
 		// insert or update with errors
 		if (isset($_POST['dataset'])) {
-			$oForm->setFormValues($_POST['dataset']);
+			$this->_oRenderer->assign('aFields', $_POST['dataset']);
 		}
-		
-		$this->configureForm($oForm);
-		
-		//print_r($oForm);
-
-		require_once __DIR__ . '/../../XhtmlTable/Aya/Yaml/AyaYamlLoader.php';
-		
-		// $sYamlFile = X_FORM_LANG_DIR.'/pl/forms/'.str_replace('_', '-', $this->_sDaoIndex).'.yaml';
-		// if (file_exists($sYamlFile)) {
-		// 	$aConfig = AyaYamlLoader::parse($sYamlFile);
-
-		// 	$aFormTexts = $oYamlParser->parse(file_get_contents($sYamlFile));
-		
-		// 	$oForm->setFormTexts($aFormTexts);
-		// }
-		
-		
-		$this->_oRenderer->assign('sForm', $oForm->render());
-		*/
 
 	}
 

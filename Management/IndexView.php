@@ -16,17 +16,9 @@ class IndexView extends View {
 	}
 	
 	public function fill() {
-		Debug::show(Navigator::getOwner(), 'navigator owner');
-		
 		Navigator::init();
 
 		Debug::show(Navigator::load(Navigator::getOwner()), 'navigator owner');
-
-		
-		// search field condition
-		$sSearch = isset($_REQUEST['nav']['search']) ? $_REQUEST['nav']['search'] : null;
-		
-		// $sWhere = isset($_REQUEST['nav']['id_offer']) ? $_REQUEST['nav']['id_article'] : null;
 		
 		// maybe need now or in the future
 		$sCtrl = $_GET['ctrl'];
@@ -43,15 +35,10 @@ class IndexView extends View {
 		// index collection
 		$oIndexCollection = Dao::collection($this->_sDaoName, $this->_sOwner);
 
-		$oIndexCollection->setGroupPart(' GROUP BY '.$this->_sDaoIndex.'.id_'.$this->_sDaoIndex);
-		// $oIndexCollection->setOrderPart(' ORDER BY '.$_GET['nav']['sort'].' DESC');
-
-		if ($sSearch) {
-			// $oIndexCollection->search('');
-		}
-			
 		$oIndexCollection->navDefault('sort', 'creation-date');
 		$oIndexCollection->navDefault('order', 'desc');
+
+		$oIndexCollection->setGroupPart(' GROUP BY '.$this->_sDaoIndex.'.id_'.$this->_sDaoIndex);
 		
 		if (!file_exists($sSqlCacheFile)) {
 			$aRows = unserialize(file_get_contents($sSqlCacheFile));
@@ -118,6 +105,8 @@ class IndexView extends View {
 			$aLocalTexts = AyaYamlLoader::parse($filename);
 		
 			$oAyaXhtmlTable->translate($aGlobalTexts, $aLocalTexts);
+		} else {
+			$oAyaXhtmlTable->translate($aGlobalTexts);
 		}
 		
 		$oAyaXhtmlTable->assign($aRows, $oIndexCollection->getNavigator());
