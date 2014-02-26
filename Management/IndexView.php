@@ -14,6 +14,17 @@ class IndexView extends View {
 	protected function _getFilters() {
 		return false;
 	}
+
+	public function defaultOrdering($oIndexCollection) {
+		$oIndexCollection->navDefault('sort', 'creation-date');
+		$oIndexCollection->navDefault('order', 'desc');
+		return $oIndexCollection;
+	}
+
+	public function defaultGrouping($oIndexCollection) {
+		$oIndexCollection->setGroupPart(' GROUP BY '.$this->_sDaoIndex.'.id_'.$this->_sDaoIndex);
+		return $oIndexCollection;
+	}
 	
 	public function fill() {
 		Navigator::init();
@@ -35,12 +46,12 @@ class IndexView extends View {
 		// index collection
 		$oIndexCollection = Dao::collection($this->_sDaoName, $this->_sOwner);
 
-		$oIndexCollection->navDefault('sort', 'creation-date');
-		$oIndexCollection->navDefault('order', 'desc');
+		$oIndexCollection = $this->defaultOrdering($oIndexCollection);
+		$oIndexCollection = $this->defaultGrouping($oIndexCollection);	
 
-		$oIndexCollection->setGroupPart(' GROUP BY '.$this->_sDaoIndex.'.id_'.$this->_sDaoIndex);
 		
-		if (!file_exists($sSqlCacheFile)) {
+		
+		if (file_exists($sSqlCacheFile)) {
 			$aRows = unserialize(file_get_contents($sSqlCacheFile));
 		} else {
 			// get records
