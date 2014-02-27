@@ -33,7 +33,7 @@ Classes to generate Html content, like tables, forms, etc.
 
 #### Forms
 
-![ScreenShot](forms-concept.jpg "Dashboard")
+![ScreenShot](forms-concept.jpg "Forms Concept")
 
 ## Flow
 
@@ -42,3 +42,5 @@ Classes to generate Html content, like tables, forms, etc.
 ## Inheritance
 
 ... Controller -> FrontController -> CrudController -> ...
+
+![ScreenShot](app-architecture.jpg "App Architecture")
