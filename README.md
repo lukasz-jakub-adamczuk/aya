@@ -38,7 +38,7 @@ Classes to generate Html content, like tables, forms, etc.
 
 ## Flow
 
-... chart
+... chart...
 
 ## Inheritance
 
