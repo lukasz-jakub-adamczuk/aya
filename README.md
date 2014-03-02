@@ -14,15 +14,15 @@ At the begining was only chaos!
 
 ## Structure
 
-Framework has modular structure which helps with using code in other projects or replacing modules with new version.
+Framework has modular structure which helps using code in other projects. Files were named...
 
 ## Modules
 
-All files are structured for better organization and to maintainance easier.
+All files are structured for better organisation and easier maintainance. Generally module (directory) could be replaced by a new version of the code.
 
 ### Core
 
-Main classes use to framework working, like controllers, views, and DAO abstractions. Aya framework delivers clas
+Main classes use to framework working, like controllers, views, and DAO abstractions. Aya framework delivers classes for general purposes and tasks.
 
 ### Management
 
