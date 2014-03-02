@@ -224,8 +224,6 @@ abstract class Controller {
 				}
 			
 				$oCtrl->runAfterMethod();
-
-				
 			}
 		}
 		if ($bDieAfterForward) {
@@ -234,7 +232,7 @@ abstract class Controller {
 	}
 	
 	public function runAfterMethod($sName = '') {
-		// wskazanie na  szablon widoku
+		// defining template name
 		Debug::show($this->_sTemplateName, 'runAfterMethod in... ' . $sName);
 		if ($this->_sTemplateName) {
 			$this->_oRenderer->assign('content', $this->_sTemplateName);

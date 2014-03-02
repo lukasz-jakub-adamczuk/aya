@@ -19,6 +19,8 @@ class InfoView extends View {
 			// echo 'id_'.$this->_sDaoIndex;
 
 			$this->_oRenderer->assign('aFields', $oInstance->getFields());
+
+			Debug::show($oInstance->getFields());
 			
 			$sFormMode = 'update';
 		} else {
@@ -27,7 +29,7 @@ class InfoView extends View {
 
 		$this->_oRenderer->assign('sFormMode', $sFormMode);
 
-		Debug::show($oInstance->getFields());
+		
 		
 		// insert or update with errors
 		if (isset($_POST['dataset'])) {

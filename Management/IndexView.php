@@ -52,14 +52,22 @@ class IndexView extends View {
 		
 		
 		if (file_exists($sSqlCacheFile)) {
-			$aRows = unserialize(file_get_contents($sSqlCacheFile));
+			// records in file
+			$aData = unserialize(file_get_contents($sSqlCacheFile));
+
+			$aRows = $aData['rows'];
+			$aNavigator = $aData['navigator'];
+
+			$oIndexCollection->restore($aRows, $aNavigator);
 		} else {
-			// get records
+			// records in db
 			$oIndexCollection->load(20);
 
+			// TODO nav shouldn't be related to order of execution
 			$aRows = $oIndexCollection->getRows();
+			$aNavigator = $oIndexCollection->getNavigator();
 			
-			file_put_contents($sSqlCacheFile, serialize($aRows));
+			file_put_contents($sSqlCacheFile, serialize(array('rows' => $aRows, 'navigator' => $aNavigator)));
 		}
 
 		Time::stop('sql-collection');
@@ -67,8 +75,6 @@ class IndexView extends View {
 
 		// filters
 		$aFilters = $this->_getFilters();
-		
-		$aNavigator = $oIndexCollection->getNavigator();
 		if ($aFilters) {
 			foreach ($aFilters as $name => $filter) {
 				if (isset($aNavigator[$name])) {
@@ -121,16 +127,14 @@ class IndexView extends View {
 		}
 		
 		$oAyaXhtmlTable->assign($aRows, $oIndexCollection->getNavigator());
-		Time::stop('view-html-table-assign');
 
 		$this->_oRenderer->assign('sTable', $oAyaXhtmlTable->render());
-		Time::stop('view-html-table');
 
 		// navigator data
 		$aNavigator = $oIndexCollection->getNavigator();
 		Debug::show($aNavigator, 'nav from collection');
 		$this->_oRenderer->assign('aNavigator', $aNavigator);
-		Time::stop('get-navigator');
+
 
 		// pagination		
 		$oPaginator = new Paginator($aNavigator);

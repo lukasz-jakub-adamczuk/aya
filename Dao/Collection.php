@@ -122,6 +122,15 @@ class Collection {
 		}
 	}
 
+	private function _fillNavigator() {
+		$this->_aNavigator['loaded'] = count($this->_aRows);
+		
+		// total records
+		if ($this->_iSize) {
+			$this->_aNavigator['total'] = $this->getCount();
+		}
+	}
+
 	public function load($iSize = null) {
 		// using unicode charset
 		$this->_db->execute("SET NAMES utf8");
@@ -154,20 +163,13 @@ class Collection {
 		
 
 		$this->_aRows = $this->_db->getArray($this->_sQuery, $this->_mId);
-		// print_r($this->_aRows);
 
-		$this->_aNavigator['loaded'] = count($this->_aRows);
-		
-		// total
-		if ($this->_iSize) {
-		// 	$this->_aNavigator['total'] = count($this->_aRows);
-		// } else {
-			Time::start('sql-collection-total');
-			$this->_aNavigator['total'] = $this->getCount();
-			Time::stop('sql-collection-total');
-		}
+		$this->_bLoaded = 1;
+	}
 
-		// $this->_select();
+	public function restore($aRows, $aNavigator) {
+		$this->_aRows = $aRows;
+		$this->_aNavigator = $aNavigator;
 		$this->_bLoaded = 1;
 	}
 
@@ -202,6 +204,8 @@ class Collection {
 		if ($this->_bLoaded == 0) {
 			$this->load();
 		}
+		$this->_fillNavigator();
+
 		return current($this->_aRows);
 	}
 
@@ -209,6 +213,8 @@ class Collection {
 		if ($this->_bLoaded == 0) {
 			$this->load();
 		}
+		$this->_fillNavigator();
+
 		return $this->_aRows;
 	}
 	
@@ -216,6 +222,8 @@ class Collection {
 		if ($this->_bLoaded == 0) {
 			$this->load();
 		}
+		$this->_fillNavigator();
+
 		$aColumn = array();
 		foreach ($this->_aRows as $rows => $row) {
 			$aColumn[$rows] = $row[$sColumn];
