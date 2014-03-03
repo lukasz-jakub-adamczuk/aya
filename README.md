@@ -8,9 +8,9 @@ Simple MVC framework in PHP
 
 Trying to create simple, usable and flexible MVC framework in PHP. Individual requirements and specific workflow were the main reasons for starting development process. Many of existing PHP frameworks were created as very advanced, multi-scenarios, and comlicated pieces of code.
 
-My intension was creating a simple, flexible and working code. Aya framework is a result of many years development experience, and software engineering paradigms.
+My intetsion was creating a simple, flexible and working code. Aya framework is a result of many years development experience, and software engineering paradigms.
 
-At the begining was only chaos!
+At the begining was chaos only!
 
 ## Structure
 
@@ -26,7 +26,7 @@ Main classes use to framework working, like controllers, views, and DAO abstract
 
 ### Management
 
-Classes to organize CRUD functions in application.
+Classes to organize CRUD functions in application. IndexView and InfoView classes are responsible for collections and entities managing.
 
 ### Html
 
