@@ -52,6 +52,7 @@ class IndexView extends View {
 		
 		
 		if (file_exists($sSqlCacheFile)) {
+			Debug::show($sSqlCacheFile, 'collection from cache file', 'info');
 			// records in file
 			$aData = unserialize(file_get_contents($sSqlCacheFile));
 

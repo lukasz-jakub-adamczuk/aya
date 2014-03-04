@@ -111,9 +111,15 @@ abstract class Controller {
 		$this->_afterInit();
 		Time::stop('ctrl-init');
 
+		Debug::show($this->_sTemplateName, 'template before auth()');
+
 		// auth or not ?
 		if (AUTH_MODE) {
-			$this->actionForward('index', 'auth');
+			if (isset($_SESSION['user'])) {
+				$this->actionForward('index', 'auth');
+			} else {
+				$this->actionForward('index', 'auth', true);
+			}
 		}
 
 
@@ -172,8 +178,10 @@ abstract class Controller {
 	public function init() {
 		$this->setViewName($this->getName('ctrl').$this->getName('action'));
 
+		Debug::show($this->getViewName(), 'view name in init');
+
 		// try '<ctrl_name>-<action_name>.tpl'
-		$sTplName = $this->getCtrlName().'-'.$this->getActionName();
+		$sTplName = $this->getCtrlName('ctrl', 'lower').'-'.$this->getName('action', 'lower');
 		if (!file_exists(TPL_DIR.THEME_DIR.DS.$sTplName.'.tpl')) {
 			// try 'all-<action_name>.tpl'
 			$sTplName = 'all-'.$this->getActionName();
@@ -190,7 +198,8 @@ abstract class Controller {
 	protected function _afterInit() {}
 
 	// TODO clean... maybe refactor
-	public function actionForward($sAction, $sCtrl = null, $bDieAfterForward = false) {
+	public function actionForward($sAction, $sCtrl = null, $bOverrideTemplate = false, $bDieAfterForward = false) {
+		Debug::show($this->_sTemplateName, 'template before actionForward()');
 		$sCtrl = is_null($sCtrl) ? $_GET['ctrl'] : $sCtrl;
 
 		$sCtrlName = ucfirst($sCtrl).'Controller';
@@ -201,18 +210,26 @@ abstract class Controller {
 
 			$oCtrl->setCtrlName($sCtrl);
 			$oCtrl->setActionName($sAction);
+
+			$oCtrl->init();
 			
 			$oCtrl->_oRenderer = $this->_oRenderer;
+
 		
 			$sMethodName = $sAction.'Action';
 			Debug::show($sMethodName, 'action in actionForward()');
+
+			Debug::show($this->getTemplateName(), 'template in actionForward() $this ctrl');
+			Debug::show($oCtrl->getTemplateName(), 'template in actionForward() $oCtrl ctrl');
 			if (method_exists($oCtrl, $sMethodName)) {
-				$oCtrl->init();
+				
 
 				$oCtrl->$sMethodName();
 
-				// set template name to parent initial ctrl
-				$this->setTemplateName($oCtrl->getTemplateName());
+				if ($bOverrideTemplate) {
+					// set template name to parent initial ctrl
+					$this->setTemplateName($oCtrl->getTemplateName());
+				}
 				
 				// view including
 				$sViewName = $sCtrl.ucfirst($sAction).'View';
@@ -231,9 +248,9 @@ abstract class Controller {
 		}
 	}
 	
-	public function runAfterMethod($sName = '') {
+	public function runAfterMethod() {
 		// defining template name
-		Debug::show($this->_sTemplateName, 'runAfterMethod in... ' . $sName);
+		Debug::show($this->_sTemplateName, 'runAfterMethod() in ' . $this->getCtrlName() . ' ctrl');
 		if ($this->_sTemplateName) {
 			$this->_oRenderer->assign('content', $this->_sTemplateName);
 		} else {
