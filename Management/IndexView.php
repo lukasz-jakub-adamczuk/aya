@@ -38,7 +38,9 @@ class IndexView extends View {
 
 		// sql cache
 		// $sSqlCacheFile = TMP_DIR . '/sql/collection/'.$sCtrl.'-'.$sAct.'';
-		$sSqlCacheFile = TMP_DIR . '/'.$sCtrl.'-'.$sAct.'';
+		$sSqlCacheFile = TMP_DIR . '/sql/collection/'.$sCtrl.'-'.$sAct.'';
+
+		// echo dirname($sSqlCacheFile);
 		
 		Time::start('sql-collection');
 
@@ -61,6 +63,9 @@ class IndexView extends View {
 
 			$oIndexCollection->restore($aRows, $aNavigator);
 		} else {
+			// create cache location directory
+			mkdir(dirname($sSqlCacheFile), 0777, true);
+			
 			// records in db
 			$oIndexCollection->load(20);
 

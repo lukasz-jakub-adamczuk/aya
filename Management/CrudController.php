@@ -84,7 +84,7 @@ class CrudController extends FrontController {
 		} else {
 			$aMsg['text'] = 'Wystąpił nieoczekiwany wyjątek.';
 			$aMsg['type'] = 'error';
-			$this->actionForward('info', $this->_sCtrlName);
+			$this->actionForward('info', $this->_sCtrlName, true);
 		}
 		$this->_oRenderer->assign('aMsgs', array($aMsg));
 	}
