@@ -27,9 +27,15 @@ class IndexView extends View {
 	}
 	
 	public function fill() {
+		$bUseCache = true;
+
 		Navigator::init();
 
 		Debug::show(Navigator::load(Navigator::getOwner()), 'navigator owner');
+
+		if (Navigator::is('search')) {
+			$bUseCache = false;
+		}
 		
 		// maybe need now or in the future
 		$sCtrl = $_GET['ctrl'];
@@ -44,7 +50,6 @@ class IndexView extends View {
 		
 		Time::start('sql-collection');
 
-
 		// index collection
 		$oIndexCollection = Dao::collection($this->_sDaoName, $this->_sOwner);
 
@@ -53,7 +58,7 @@ class IndexView extends View {
 
 		
 		
-		if (file_exists($sSqlCacheFile)) {
+		if ($bUseCache && file_exists($sSqlCacheFile)) {
 			Debug::show($sSqlCacheFile, 'collection from cache file', 'info');
 			// records in file
 			$aData = unserialize(file_get_contents($sSqlCacheFile));
