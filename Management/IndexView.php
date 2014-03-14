@@ -11,6 +11,14 @@ class IndexView extends View {
 		
 	}
 
+	protected function _getSections() {
+		return false;
+	}
+
+	protected function _getMassActions() {
+		return false;
+	}
+
 	protected function _getFilters() {
 		return false;
 	}
@@ -69,7 +77,10 @@ class IndexView extends View {
 			$oIndexCollection->restore($aRows, $aNavigator);
 		} else {
 			// create cache location directory
-			mkdir(dirname($sSqlCacheFile), 0777, true);
+			$sSqlCacheDir = dirname($sSqlCacheFile);
+			if (!file_exists($sSqlCacheDir)) {
+				mkdir(dirname($sSqlCacheDir), 0777, true);
+			}
 			
 			// records in db
 			$oIndexCollection->load(20);
@@ -158,6 +169,15 @@ class IndexView extends View {
 		$this->_sOwner = $this->_sDaoName.'-'.$_GET['ctrl'].'-'.$_GET['act'];
 
 		Navigator::setOwner($this->_sOwner);
+
+		// send sections for a view
+		if ($this->_getSections()) {
+			$this->_oRenderer->assign('aSections', $this->_getSections());
+		}
+
+		if ($this->_getMassActions()) {
+			$this->_oRenderer->assign('aMassActions', $this->_getMassActions());
+		}
 	}
 	
 	public function afterFill() {

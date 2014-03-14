@@ -80,11 +80,11 @@ class CrudController extends FrontController {
 			$sEditUrl = BASE_URL.'/'.$this->_sCtrlName.'/'.$iId;
 			$aMsg['text'] = 'Wpis <strong>'.$sTitle.'</strong> został zmieniony. <a href="'.$sEditUrl.'">Edytuj</a> ponownie.';
 			$aMsg['type'] = 'info';
-			$this->actionForward('index', $this->_sCtrlName);
+			$this->actionForward('index', $this->_sCtrlName, true);
 		} else {
 			$aMsg['text'] = 'Wystąpił nieoczekiwany wyjątek.';
 			$aMsg['type'] = 'error';
-			$this->actionForward('info', $this->_sCtrlName, true);
+			$this->actionForward('info', $this->_sCtrlName);
 		}
 		$this->_oRenderer->assign('aMsgs', array($aMsg));
 	}
@@ -92,18 +92,21 @@ class CrudController extends FrontController {
 	public function deleteAction() {
 		if (isset($_POST['ids'])) {
 			$aIds = $_POST['ids'];
+			// print_r($aIds);
 		}
 		
 		if (isset($aIds)) {
 			$aTitles = array();
 			foreach ($aIds as $id) {
-				$oInstance = Dao::entity($this->getCtrlName('lower'), $id, 'id_'.str_replace('-', '_', $this->getCtrlName('lower')));
+				$oEntity = Dao::entity($this->_sCtrlName, $id, 'id_'.$this->_sCtrlName);
 
 				// if ($oInstance->hasField('title')) {
-				$sTitle = $oInstance->getField('title');
+				$sTitle = $oEntity->getField('title');
 				// }
+
+				$oEntity->setField('deleted', '1');
 				
-				if ($oInstance->delete()) {
+				if ($oEntity->update()) {
 				// if (true) {
 					// echo 'DELETE ACTION...';
 					// print_r($oInstance);
