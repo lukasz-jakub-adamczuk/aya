@@ -23,7 +23,7 @@ class Collection {
 	
 	protected $_aConditions = array();
 	
-	// protected $_aSearch = array();
+	protected $_aSearch = array();
 
 	protected $_aRows = array();
 
@@ -44,18 +44,21 @@ class Collection {
 
 	protected $_sLimit = '';
 
-	public function __construct($sName = null, $sNavigatorOwner = null) {
+	public function __construct($sName = null, $sNavigatorOwner = null, $aParams = null) {
 		// ustawia nazwe, kluczowa do dalszych dzialan
 		$this->_sName = $sName === null ? str_replace('Collection', '', get_class($this)) : $sName;
 		// nazwa tabeli
 		$this->_sTable = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', str_replace('-', '_', $this->_sName)));
 
-		// echo '__'.$this->_sTable.'__';
-
 		$this->_mId = 'id_'.$this->_sTable;
-		
-		// $this->_aSearch = $aSearch;
-		$this->_aSearch = array('title');
+
+		if ($aParams) {
+			if (isset($aParams['search'])) {
+				$this->_aSearch = $aParams['search'];
+			}
+		}
+
+		Debug::show($this->_aSearch);
 		
 		if ($sNavigatorOwner) {
 			$this->_sOwner = $sNavigatorOwner;
@@ -73,9 +76,6 @@ class Collection {
 		// load values from session storage
 		$this->_loadNavigator();
 		Debug::show($this->_aNavigator, '$this->_aNavigator from Collection _prepare()');
-
-		
-		
 	}
 
 	protected function _prepare() {
@@ -97,7 +97,6 @@ class Collection {
 	
 	protected function _loadNavigator() {
 		$this->_aNavigator = Navigator::load($this->_sOwner);
-		
 		
 		if (isset($this->_aNavigator['size'])) {
 			$this->_iSize = $this->_aNavigator['size'];
@@ -160,10 +159,8 @@ class Collection {
 		}
 
 		Debug::show($this->_sQuery);
-		
 
 		$this->_aRows = $this->_db->getArray($this->_sQuery, $this->_mId);
-
 		$this->_bLoaded = 1;
 	}
 
@@ -194,6 +191,10 @@ class Collection {
 
 	public function setPageSize($iSize) {
 		$this->_iSize = $iSize;
+	}
+
+	public function setSearchFields($aSearch) {
+		$this->_aSearch = $aSearch;
 	}
 
 	public function getNavigator() {
@@ -364,6 +365,9 @@ class Collection {
 	}
 
 
+	public function where($sField, $mValue) {
+		$this->_aWhere[] = $sField.'="'.$mValue.'"';
+	}
 
 	
 	private function _getWhere() {

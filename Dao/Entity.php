@@ -105,18 +105,18 @@ class Entity {
 	}
 
 	public function setField($sField, $mValue) {
-		if (isset($this->_aDbFields[$sField])) {
-			if (isset($mValue)) {
-				if ($this->_aDbFields[$sField] != $mValue) {
-					$this->_aDbFields[$sField] = $mValue;
-					// $this->_aModifiedFields[$sField] = 1;
-					// $this->_bModified = 1;
-				}
-			}
-		} else {
-			$this->_aQueryFields[$sField] = $mValue;
-		}
-		// $this->_aQueryFields[$sField] = $mValue;
+		// if (isset($this->_aDbFields[$sField])) {
+		// 	if (isset($mValue)) {
+		// 		if ($this->_aDbFields[$sField] != $mValue) {
+		// 			$this->_aDbFields[$sField] = $mValue;
+		// 			// $this->_aModifiedFields[$sField] = 1;
+		// 			// $this->_bModified = 1;
+		// 		}
+		// 	}
+		// } else {
+		// 	$this->_aQueryFields[$sField] = $mValue;
+		// }
+		$this->_aQueryFields[$sField] = $mValue;
 	}
 
 	public function setFields($aFields) {
