@@ -23,6 +23,10 @@ class IndexView extends View {
 		return false;
 	}
 
+	protected function _getSearchFields() {
+		return array('title');
+	}
+
 	public function defaultOrdering($oIndexCollection) {
 		$oIndexCollection->navDefault('sort', 'creation-date');
 		$oIndexCollection->navDefault('order', 'desc');
@@ -33,6 +37,11 @@ class IndexView extends View {
 		$oIndexCollection->setGroupPart(' GROUP BY '.$this->_sDaoIndex.'.id_'.$this->_sDaoIndex);
 		return $oIndexCollection;
 	}
+
+	// public function defaultSearching($oIndexCollection) {
+	// 	$oIndexCollection->setSearchFields('title');
+	// 	return $oIndexCollection;
+	// }
 	
 	public function fill() {
 		$bUseCache = true;
@@ -59,12 +68,17 @@ class IndexView extends View {
 		Time::start('sql-collection');
 
 		// index collection
-		$oIndexCollection = Dao::collection($this->_sDaoName, $this->_sOwner);
+		$aParams = array();
+		$aParams['search'] = $this->_getSearchFields();
+		
+		$oIndexCollection = Dao::collection($this->_sDaoName, $this->_sOwner, $aParams);
 
 		$oIndexCollection = $this->defaultOrdering($oIndexCollection);
-		$oIndexCollection = $this->defaultGrouping($oIndexCollection);	
+		$oIndexCollection = $this->defaultGrouping($oIndexCollection);
 
-		
+		// $oIndexCollection = $this->defaultSearching($oIndexCollection);
+
+		// Debug::show($this->_getSearchFields());
 		
 		if ($bUseCache && file_exists($sSqlCacheFile)) {
 			Debug::show($sSqlCacheFile, 'collection from cache file', 'info');
