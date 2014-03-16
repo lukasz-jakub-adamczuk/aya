@@ -20,7 +20,7 @@ class Dao {
 		}
 	}
 	
-	public static function collection($sName, $sOwner = null) {
+	public static function collection($sName, $sOwner = null, $aParams = null) {
 		if (file_exists(DAO_DIR.'/collections/'.$sName.'Collection.php')) {
 		    //echo 'dao exists...';
 			require_once DAO_DIR.'/collections/'.$sName.'Collection.php';
@@ -30,7 +30,7 @@ class Dao {
 			require_once AYA_DIR.'/Dao/Collection.php';
 			$sCollection = 'Collection';
 		}
-		return new $sCollection($sName, $sOwner);
+		return new $sCollection($sName, $sOwner, $aParams);
 	}
 
 }
