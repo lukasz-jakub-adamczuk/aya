@@ -50,6 +50,7 @@ class CrudController extends FrontController {
 		
 		if ($oEntity->insert()) {
 			// clear cache
+			echo $sSqlCacheFile = TMP_DIR . '/sql/collection/'.$sCtrl.'-'.$sAct.'';
 
 			$aMsg['text'] = 'Wpis <strong>'.$sTitle.'</strong> został utworzony.';
 			$aMsg['type'] = 'info';

@@ -134,9 +134,13 @@ abstract class Controller {
 
 		$sMethodName = $sActionName.'Action';
 
+		// echo $sMethodName;
+
 		// controller action
 		if (method_exists($this, $sMethodName)) {
+			// Debug::show($this->getTemplateName(), 'tpl name in ctrl');
 			$this->$sMethodName();
+			// Debug::show($this->getTemplateName(), 'tpl name in ctrl');
 			Time::stop('ctrl-method');
 
 			// including view for action
@@ -180,6 +184,8 @@ abstract class Controller {
 
 		Debug::show($this->getViewName(), 'view name in init');
 
+		
+
 		// try '<ctrl_name>-<action_name>.tpl'
 		$sTplName = $this->getCtrlName('ctrl', 'lower').'-'.$this->getName('action', 'lower');
 		if (!file_exists(TPL_DIR.THEME_DIR.DS.$sTplName.'.tpl')) {
@@ -195,7 +201,9 @@ abstract class Controller {
 		Debug::show($sTplName, 'template init');
 	}
 
-	protected function _afterInit() {}
+	protected function _afterInit() {
+		// Debug::show($this->getTemplateName(), 'tpl name in ctrl');
+	}
 
 	// TODO clean... maybe refactor
 	public function actionForward($sAction, $sCtrl = null, $bOverrideTemplate = false, $bDieAfterForward = false) {
