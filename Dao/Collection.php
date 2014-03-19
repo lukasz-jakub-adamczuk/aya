@@ -379,10 +379,4 @@ class Collection {
 		}
 		return $sWhere;
 	}
-
-
-	
-
-
-
 }

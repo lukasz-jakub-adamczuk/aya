@@ -25,11 +25,8 @@ abstract class View {
 
 	public function init() {
 		$this->beforeFill();
-		Time::stop('view-before-fill');
 		$this->fill();
-		Time::stop('view-fill');
 		$this->afterFill();
-		Time::stop('view-after-fill');
 	}
 	
 	public function fill() {}

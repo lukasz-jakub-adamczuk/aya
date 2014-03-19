@@ -230,8 +230,7 @@ abstract class Controller {
 			Debug::show($this->getTemplateName(), 'template in actionForward() $this ctrl');
 			Debug::show($oCtrl->getTemplateName(), 'template in actionForward() $oCtrl ctrl');
 			if (method_exists($oCtrl, $sMethodName)) {
-				
-
+				// action method in ctrl
 				$oCtrl->$sMethodName();
 
 				if ($bOverrideTemplate) {
