@@ -1,5 +1,4 @@
 <?php
-require_once SMARTY_DIR.'/Smarty.class.php';
 
 abstract class Controller {
 
@@ -94,6 +93,8 @@ abstract class Controller {
 		// session_unset($_SESSION['user']);
 
 		// template engine
+		require_once TPL_ENGINE_DIR.'/libs/Smarty.class.php';
+		
 		$this->_oRenderer = new Smarty;
 
 		Debug::show(TPL_DIR.THEME_DIR, 'template_dir');

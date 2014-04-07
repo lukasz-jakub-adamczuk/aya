@@ -79,7 +79,7 @@ class Collection {
 	}
 
 	protected function _prepare() {
-		return $this->getSelectPart().' '.$this->getFromPart().' '.$this->getJoinPart().''.$this->_getWhere().''.$this->getGroupPart().''.$this->getOrderPart().''.$this->getLimitPart().'';
+		return $this->getSelectPart().' '.$this->getFromPart().' '.$this->getJoinPart().' '.$this->_getWhere().' '.$this->getGroupPart().' '.$this->getOrderPart().' '.$this->getLimitPart().'';
 	}
 
 	protected function _defaultNavigator() {
@@ -151,14 +151,18 @@ class Collection {
 			$iPage = $iPage > 0 ? $iPage-1 : 0;
 			$this->_sLimit = ' LIMIT '.($iPage) * $this->_iSize.','.$this->_iSize;
 		}
-
-		$this->_sSelect = 'SELECT *';
+		if ($this->_sSelect == '') {
+			$this->_sSelect = 'SELECT *';
+		}
 
 		if (!$this->_sQuery) {
 			$this->_sQuery = $this->_prepare();
 		}
 
 		Debug::show($this->_sQuery);
+
+		// echo '_'.$this->_sQuery.'_';
+		// var_dump('_'.$this->_sQuery.'_');
 
 		$this->_aRows = $this->_db->getArray($this->_sQuery, $this->_mId);
 		$this->_bLoaded = 1;
@@ -287,10 +291,10 @@ class Collection {
 
 	public function select($mSelect) {
 		if (is_array($mSelect)) {
-			$this->_sSelect = implode(',', $mSelect);
+			$this->_sSelect = 'SELECT ' . implode(',', $mSelect);
 		} else {
-			echo $mSelect;
-			$this->_sSelect = $mSelect;
+			// echo $mSelect;
+			$this->_sSelect = 'SELECT ' . $mSelect;
 		}
 	}
 
@@ -366,7 +370,8 @@ class Collection {
 
 
 	public function where($sField, $mValue) {
-		$this->_aWhere[] = $sField.'="'.$mValue.'"';
+		// $this->_aWhere[] = '`'.$sField.'`="'.$mValue.'"';
+		$this->_aWhere[] = ''.$sField.'='.$mValue.'';
 	}
 
 	

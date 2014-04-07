@@ -44,7 +44,7 @@ class IndexView extends View {
 	// }
 	
 	public function fill() {
-		$bUseCache = true;
+		$bUseCache = false;
 
 		Navigator::init();
 

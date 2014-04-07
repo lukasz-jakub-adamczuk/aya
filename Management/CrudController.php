@@ -48,13 +48,16 @@ class CrudController extends FrontController {
 		
 		//print_r($oEntity);
 		
-		if ($oEntity->insert()) {
+		if ($iId = $oEntity->insert()) {
 			// clear cache
-			echo $sSqlCacheFile = TMP_DIR . '/sql/collection/'.$sCtrl.'-'.$sAct.'';
+			$sSqlCacheFile = TMP_DIR . '/sql/collection/'.$this->_sCtrlName.'-'.$this->_sActionName.'';
 
 			$aMsg['text'] = 'Wpis <strong>'.$sTitle.'</strong> został utworzony.';
 			$aMsg['type'] = 'info';
-			$this->actionForward('index', $this->_sCtrlName);
+
+			$this->addHistoryLog('create', $this->_sCtrlName, $iId);
+
+			$this->actionForward('index', $this->_sCtrlName, true);
 		} else {
 			$aMsg['text'] = 'Wystąpił nieoczekiwany wyjątek.';
 			$aMsg['type'] = 'error';
@@ -76,11 +79,16 @@ class CrudController extends FrontController {
 
 		// old title for message
 		$sTitle = $oEntity->getField('title');
+
+		echo $sSqlCacheFile = TMP_DIR . '/sql/collection/'.$this->_sCtrlName.'-'.$this->_sActionName.'';
 		
 		if ($oEntity->update()) {
 			$sEditUrl = BASE_URL.'/'.$this->_sCtrlName.'/'.$iId;
 			$aMsg['text'] = 'Wpis <strong>'.$sTitle.'</strong> został zmieniony. <a href="'.$sEditUrl.'">Edytuj</a> ponownie.';
 			$aMsg['type'] = 'info';
+
+			$this->addHistoryLog('update', $this->_sCtrlName, $iId);
+			
 			$this->actionForward('index', $this->_sCtrlName, true);
 		} else {
 			$aMsg['text'] = 'Wystąpił nieoczekiwany wyjątek.';
@@ -110,6 +118,7 @@ class CrudController extends FrontController {
 				if ($oEntity->update()) {
 				// if (true) {
 					// echo 'DELETE ACTION...';
+					$this->addHistoryLog('delete', $this->_sCtrlName, $id);
 					// print_r($oInstance);
 					$aTitles[] = $sTitle;   
 					// $this->actionForward('index', $this->_sCtrlName);
@@ -131,7 +140,18 @@ class CrudController extends FrontController {
 		}
 	}
 
+	public function addHistoryLog($sActionType, $sTableName, $iId, $sLog = '') {
+		$oEntity = Dao::entity('history_log');
 
+		$oEntity->setField('id_author', $_SESSION['user']['id']);
+		$oEntity->setField('id_record', $iId);
+		$oEntity->setField('table', $sTableName);
+		$oEntity->setField('log', $sLog);
+		$oEntity->setField('creation_date', date('Y-m-d H:i:s'));
+		$oEntity->setField('type', $sActionType);
+
+		$oEntity->insert();
+	}
 
 	
 	private function slugify($text) { 
