@@ -42,6 +42,10 @@ class IndexView extends View {
 	// 	$oIndexCollection->setSearchFields('title');
 	// 	return $oIndexCollection;
 	// }
+
+	public function postProccessDataset($aRows) {
+		return $aRows;
+	}
 	
 	public function fill() {
 		$bUseCache = false;
@@ -107,6 +111,9 @@ class IndexView extends View {
 		}
 
 		Time::stop('sql-collection');
+
+
+		$aRows = $this->postProccessDataset($aRows);
 		
 
 		// filters
@@ -123,7 +130,7 @@ class IndexView extends View {
 		
 		
 		// table configuration
-		require_once __DIR__ . '/../../XhtmlTable/Aya/Yaml/AyaYamlLoader.php';
+		require_once dirname(ROOT_DIR) . '/XhtmlTable/Aya/Yaml/AyaYamlLoader.php';
 		Time::stop('yaml-loader');
 		
 		$file = APP_DIR . '/conf/layout/tables/'.$sCtrl.'.yml';

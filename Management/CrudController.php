@@ -4,12 +4,10 @@ require_once AYA_DIR.'/Management/FrontController.php';
 class CrudController extends FrontController {
 	
 	public function indexAction() {
-
 		// decide what to do with action
 		if (isset($_POST['action'])) {
 			$sAction = key($_POST['action']).'Action';
 			// unset($_POST['action']);
-			// echo 'MASS in indexAction();';
 
 			if (isset($_POST['ids'])) {
 				$this->$sAction();
@@ -17,53 +15,60 @@ class CrudController extends FrontController {
 		}
 	}
 	
-	public function infoAction() {
-	}
-	
-	public function editAction() {
-	
-	}
+	public function infoAction() {}
 	
 	public function addAction() {
-		$this->actionForward('info');
+		$this->setTemplateName($this->_sCtrlName.'-info');
+		$this->setViewName(str_replace(' ', '', ucwords(str_replace('-', ' ', $this->_sCtrlName.'-info'))));
 	}
 	
 	public function insertAction() {
-		// $iId = isset($_POST['id']) ?;
 		$iId = 0;
-		
+
 		$oEntity = Dao::entity($this->_sCtrlName, $iId);
 		
 		$oEntity->setFields($_POST['dataset']);
 
-		$oEntity->setField('slug', $this->slugify($_POST['dataset']['title']));
+		$aPossibleNameKeys = array('title', 'name');
+		foreach ($aPossibleNameKeys as $key) {
+			if (isset($_POST['dataset'][$key])) {
+				$sName = $_POST['dataset'][$key];
+				break;
+			}
+		}
 
-		// $oEntity->setField('creation_date', '2014-02-21 18:30:00');
-		$oEntity->setField('creation_date', date('Y-m-d H:i:s'));
-		// $oEntity->setField('creation_date', 'NOW()');
+		// slug by used name if empty or changed name
+		if (isset($_POST['dataset']['slug']) && (empty($_POST['dataset']['slug']) || $_POST['dataset']['slug'] != $this->slugify($sName))) {
+			$oEntity->setField('slug', $this->slugify($sName));
+		}
 
-
-
-		$sTitle = $_POST['dataset']['title'];
+		// no creation date
+		// TODO or creation date invalid
+		if (empty($_POST['dataset']['creation_date'])) {
+			$oEntity->setField('creation_date', date('Y-m-d H:i:s'));
+		}
+		// if mod_date comes somehow
+		if (empty($_POST['dataset']['modification_date'])) {
+			$oEntity->unsetField('modification_date');
+		}
 		
-		//print_r($oEntity);
-		
-		if ($iId = $oEntity->insert()) {
+		if ($iId = $oEntity->insert(true)) {
+			$this->postInsert($iId);
 			// clear cache
 			$sSqlCacheFile = TMP_DIR . '/sql/collection/'.$this->_sCtrlName.'-'.$this->_sActionName.'';
 
-			$aMsg['text'] = 'Wpis <strong>'.$sTitle.'</strong> został utworzony.';
-			$aMsg['type'] = 'info';
+			$this->raiseInfo('Wpis <strong>'.$sName.'</strong> został utworzony.');
 
 			$this->addHistoryLog('create', $this->_sCtrlName, $iId);
 
+			// $aStreamItem = $this->prepareStreamItem($iId, $_POST);
+			// $this->addToStream($aStreamItem);
+
 			$this->actionForward('index', $this->_sCtrlName, true);
 		} else {
-			$aMsg['text'] = 'Wystąpił nieoczekiwany wyjątek.';
-			$aMsg['type'] = 'error';
+			$this->raiseError('Wystąpił nieoczekiwany wyjątek.');
 			$this->actionForward('info', $this->_sCtrlName);
 		}
-		$this->_oRenderer->assign('aMsgs', array($aMsg));
 	}
 	
 	public function updateAction() {
@@ -73,29 +78,41 @@ class CrudController extends FrontController {
 		
 		$oEntity->setFields($_POST['dataset']);
 
-		$oEntity->setField('slug', $this->slugify($_POST['dataset']['title']));
+		$aPossibleNameKeys = array('title', 'name');
+		foreach ($aPossibleNameKeys as $key) {
+			if (isset($_POST['dataset'][$key])) {
+				$sName = $_POST['dataset'][$key];
+				break;
+			}
+		}
 
-		$oEntity->setField('modification_date', date('Y-m-d H:i:s'));
+		// slug by used name if empty or changed name
+		if (isset($_POST['dataset']['slug']) && (empty($_POST['dataset']['slug']) || $_POST['dataset']['slug'] != $this->slugify($sName))) {
+			$oEntity->setField('slug', $this->slugify($sName));
+		}
 
-		// old title for message
-		$sTitle = $oEntity->getField('title');
-
-		echo $sSqlCacheFile = TMP_DIR . '/sql/collection/'.$this->_sCtrlName.'-'.$this->_sActionName.'';
+		if (isset($_POST['dataset']['modification_date'])) {
+			if ($_POST['dataset']['modification_date'] == '') {
+				$oEntity->setField('modification_date', date('Y-m-d H:i:s'));
+			}
+		}
 		
 		if ($oEntity->update()) {
+			$this->postUpdate();
+
 			$sEditUrl = BASE_URL.'/'.$this->_sCtrlName.'/'.$iId;
-			$aMsg['text'] = 'Wpis <strong>'.$sTitle.'</strong> został zmieniony. <a href="'.$sEditUrl.'">Edytuj</a> ponownie.';
-			$aMsg['type'] = 'info';
+			$this->raiseInfo('Wpis <strong>'.$sName.'</strong> został zmieniony. <a href="'.$sEditUrl.'">Edytuj</a> ponownie.');
 
 			$this->addHistoryLog('update', $this->_sCtrlName, $iId);
+
+			// $aStreamItem = $this->prepareStreamItem($iId, $_POST);
+			// $this->addToStream($aStreamItem);
 			
 			$this->actionForward('index', $this->_sCtrlName, true);
 		} else {
-			$aMsg['text'] = 'Wystąpił nieoczekiwany wyjątek.';
-			$aMsg['type'] = 'error';
+			$this->raiseError('Wystąpił nieoczekiwany wyjątek.');
 			$this->actionForward('info', $this->_sCtrlName);
 		}
-		$this->_oRenderer->assign('aMsgs', array($aMsg));
 	}
 
 	public function deleteAction() {
@@ -103,6 +120,8 @@ class CrudController extends FrontController {
 			$aIds = $_POST['ids'];
 			// print_r($aIds);
 		}
+
+		// echo 'deleteAction';
 		
 		if (isset($aIds)) {
 			$aTitles = array();
@@ -120,25 +139,69 @@ class CrudController extends FrontController {
 					// echo 'DELETE ACTION...';
 					$this->addHistoryLog('delete', $this->_sCtrlName, $id);
 					// print_r($oInstance);
-					$aTitles[] = $sTitle;   
+					$aTitles[] = $sTitle;
 					// $this->actionForward('index', $this->_sCtrlName);
 				}
 			}
 
 			// msg
 			if (count($aTitles) == 1) {
-				$aMsg['text'] = 'Wpis <strong>'.$aTitles[0].'</strong> został usunięty.';
-				$aMsg['type'] = 'info';
+				$this->raiseInfo('Wpis <strong>'.$aTitles[0].'</strong> został usunięty.');
 			} elseif (count($aTitles) > 1) {
-				$aMsg['text'] = 'Wpisy <strong>'.implode(', ', $aTitles).'</strong> zostały usunięte.';
-				$aMsg['type'] = 'info';
+				$this->raiseInfo('Wpisy <strong>'.implode(', ', $aTitles).'</strong> zostały usunięte.');
 			} else {
-				$aMsg['text'] = 'Wystąpił nieoczekiwany wyjątek.';
-				$aMsg['type'] = 'warning';
+				$this->raiseError('Wystąpił nieoczekiwany wyjątek.');
 			}
 			$this->_oRenderer->assign('aMsgs', array($aMsg));
 		}
 	}
+
+	public function removeAction() {
+		if (isset($_POST['ids'])) {
+			$aIds = $_POST['ids'];
+			// print_r($aIds);
+		}
+		
+		if (isset($aIds)) {
+			$aTitles = array();
+			foreach ($aIds as $id) {
+				$oEntity = Dao::entity($this->_sCtrlName, $id, 'id_'.$this->_sCtrlName);
+
+				// if ($oInstance->hasField('title')) {
+				$sTitle = $oEntity->getField('title');
+				// }
+
+				$oEntity->setField('deleted', '1');
+				
+				if ($oEntity->delete()) {
+				// if (true) {
+					// echo 'DELETE ACTION...';
+					$this->addHistoryLog('remove', $this->_sCtrlName, $id);
+					// print_r($oInstance);
+					$aTitles[] = $sTitle;
+					// $this->actionForward('index', $this->_sCtrlName);
+				}
+			}
+
+			// msg
+			if (count($aTitles) == 1) {
+				$this->raiseInfo('Wpis <strong>'.$aTitles[0].'</strong> został usunięty.');
+			} elseif (count($aTitles) > 1) {
+				$this->raiseInfo('Wpisy <strong>'.implode(', ', $aTitles).'</strong> zostały usunięte.');
+			} else {
+				$this->raiseError('Wystąpił nieoczekiwany wyjątek.');
+			}
+			$this->_oRenderer->assign('aMsgs', array($aMsg));
+		}
+	}
+
+	// action hooks
+
+	public function postInsert($iId) {}
+
+	public function postUpdate($iId) {}
+
+	// additional common tasks 
 
 	public function addHistoryLog($sActionType, $sTableName, $iId, $sLog = '') {
 		$oEntity = Dao::entity('history_log');
@@ -151,6 +214,47 @@ class CrudController extends FrontController {
 		$oEntity->setField('type', $sActionType);
 
 		$oEntity->insert();
+	}
+
+	public function prepareStreamItem($iId, $aPost) {
+		$aStreamItem = array(
+			'id' => $iId,
+			'ctrl' => $this->_sCtrlName,
+			'title' => $_POST['dataset']['title'],
+			'slug' => $this->slugify($_POST['dataset']['title']),
+			'category' => isset($_POST['hidden']['category']) ? $_POST['hidden']['category'] : '',
+			'category_slug' => isset($_POST['hidden']['category']) ? $this->slugify($_POST['hidden']['category']) : '',
+			'category_abbr' => isset($_POST['hidden']['abbr']) ? $this->slugify($_POST['hidden']['abbr']) : '',
+			'creation_date' => date('Y-m-d H:i:s')
+		);
+		return $aStreamItem;
+	}
+
+	public function addToStream($aStreamItem) {
+		$sFile = ROOT_DIR . '/../renaissance/app/cache/stream';
+		if (file_exists($sFile)) {
+			$aActivities = unserialize(file_get_contents($sFile));
+
+			$aItems = array_reverse($aActivities);
+
+			// if item exists in stream remove it, and place at the top
+			$aReducedItems = array();
+			foreach ($aItems as $ik => $item) {
+				$sItemKey = (isset($item['ctrl']) ? $item['ctrl'] : 'news').'-'.(isset($item['id']) ? $item['id'] : $item['id_news']);
+				if (!isset($aReducedItems[$sItemKey])) {
+					unset($item);
+				}
+			}
+
+			$aReducedItems[] = $aStreamItem;
+
+			$aActivities = array_reverse($aReducedItems);;
+
+			// print_r($aActivities);
+
+			file_put_contents($sFile, serialize($aActivities));
+		}
+		
 	}
 
 	
@@ -175,5 +279,26 @@ class CrudController extends FrontController {
 		}
 		
 		return $text;
+	}
+
+	public function raiseInfo($sMessage) {
+		$aMsg = array();
+		$aMsg['text'] = $sMessage;
+		$aMsg['type'] = 'info';
+		$this->_oRenderer->assign('aMsgs', array($aMsg));
+	}
+
+	public function raiseWarning($sMessage) {
+		$aMsg = array();
+		$aMsg['text'] = $sMessage;
+		$aMsg['type'] = 'warning';
+		$this->_oRenderer->assign('aMsgs', array($aMsg));
+	}
+
+	public function raiseError($sMessage) {
+		$aMsg = array();
+		$aMsg['text'] = $sMessage;
+		$aMsg['type'] = 'alert';
+		$this->_oRenderer->assign('aMsgs', array($aMsg));
 	}
 }

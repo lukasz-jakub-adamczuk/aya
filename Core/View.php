@@ -34,4 +34,26 @@ abstract class View {
 	public function beforeFill() {}
 
 	public function afterFill() {}
+
+	// copied from Controller
+	public function raiseInfo($sMessage) {
+		$aMsg = array();
+		$aMsg['text'] = $sMessage;
+		$aMsg['type'] = 'info';
+		$this->_oRenderer->assign('aMsgs', array($aMsg));
+	}
+
+	public function raiseWarning($sMessage) {
+		$aMsg = array();
+		$aMsg['text'] = $sMessage;
+		$aMsg['type'] = 'warning';
+		$this->_oRenderer->assign('aMsgs', array($aMsg));
+	}
+
+	public function raiseError($sMessage) {
+		$aMsg = array();
+		$aMsg['text'] = $sMessage;
+		$aMsg['type'] = 'alert';
+		$this->_oRenderer->assign('aMsgs', array($aMsg));
+	}
 }

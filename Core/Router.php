@@ -36,5 +36,7 @@ class Router {
 		}
 
 		$oController->run();
+
+		return $oController;
 	}
 }

@@ -2,6 +2,11 @@
 require_once AYA_DIR.'/Core/Controller.php';
 
 class FrontController extends Controller {
+
+	public function runBeforeMethod() {
+		// Breadcrumbs::add('', 'squarezone.pl', 'icon-home');
+		Breadcrumbs::add($this->getCtrlName(), $this->getCtrlName());
+	}
 	
 	// TODO should name init()
 	public function runAfterMethod() {
@@ -9,20 +14,30 @@ class FrontController extends Controller {
 
 		// $db = Db::getInstance(unserialize(DB_SOURCE));
 		// $db->execute("set names utf8;");
+		// echo 'run AfterMEthod';
 
 		if (isset($_SESSION['user'])) {
 			$this->_oRenderer->assign('user', $_SESSION['user']);
 		}
+
+		
+
+		$this->_oRenderer->assign('aBreadcrumbs', Breadcrumbs::get());
 		
 		// vars in templates
 		$this->_oRenderer->assign('base', BASE_URL);
+		if (defined('SITE_URL')) {
+			$this->_oRenderer->assign('site', SITE_URL);
+		}
 		$this->_oRenderer->assign('ctrl', $this->getCtrlName());
 		$this->_oRenderer->assign('act', $this->getActionName());
 	}
 	
-	public function indexAction() {
+	public function _indexAction() {
 		
 	}
+
+	public function _infoAction() {}
 
 	// action to set special params in session
 	public function setAction() {

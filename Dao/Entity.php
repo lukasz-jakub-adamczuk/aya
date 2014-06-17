@@ -28,6 +28,8 @@ class Entity {
 		$this->_sTable = strtolower(get_class($this)) == 'entity' ? $sIdLabel : null;
 		$this->_db = DB::getInstance();
 
+		// echo $this->_sTable;
+
 		$this->_mId = $mIdentifier;
 		if (is_numeric($mIdentifier)) {
 			$this->_sIdLabel = 'id_'.$this->_sTable;
@@ -133,7 +135,13 @@ class Entity {
 		// }
 	}
 
-	public function insert() {
+	public function unsetField($sField) {
+		if (isset($this->_aQueryFields[$sField])) {
+			unsset($this->_aQueryFields[$sField]);
+		}
+	}
+
+	public function insert($bSetNamesUtf8 = false) {
 		$q = 'INSERT INTO '.$this->_sTable.'(';
 		foreach ($this->_aQueryFields as $key => $val) {
 			$q .= '`'.$key.'`, ';
@@ -150,8 +158,13 @@ class Entity {
 		$q = substr($q, 0, -2);
 		$q .= ');';
 		$this->_sQuery = $q;
+		// echo $q;
 
 		Debug::show($this->_sQuery);
+
+		if ($bSetNamesUtf8) {
+			$this->_db->execute("SET NAMES utf8");
+		}
 		
 		if ($this->_db->execute($q)) {
 			return $this->_mId = mysql_insert_id();

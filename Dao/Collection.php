@@ -123,9 +123,13 @@ class Collection {
 
 	private function _fillNavigator() {
 		$this->_aNavigator['loaded'] = count($this->_aRows);
+
+		// echo $this->_iSize;
+		// print_r($this->_aNavigator);
 		
 		// total records
 		if ($this->_iSize) {
+			// echo '_' . $this->_iSize . '_iSize is true ';
 			$this->_aNavigator['total'] = $this->getCount();
 		}
 	}
@@ -223,7 +227,8 @@ class Collection {
 		return $this->_aRows;
 	}
 	
-	public function getColumn($sColumn = 'name', $iPage = -1) {
+	// public function getColumn($sColumn = 'name', $iPage = -1) {
+	public function getColumn($sColumn = 'name') {
 		if ($this->_bLoaded == 0) {
 			$this->load();
 		}

@@ -10,7 +10,11 @@ class Dao {
 			require_once AYA_DIR.'/Dao/Entity.php';
 			$sEntity = 'Entity';
 			if ($sName) {
-				$sIdLabel = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $sName));
+				if (strpos($sName, '-') !== false) {
+					$sIdLabel = strtolower(str_replace('-', '_', $sName));
+				} else {
+					$sIdLabel = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $sName));
+				}
 			}
 		}
 		if ($sIdLabel) {
