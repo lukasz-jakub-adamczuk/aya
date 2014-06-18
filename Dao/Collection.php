@@ -376,13 +376,13 @@ class Collection {
 
 	public function where($sField, $mValue) {
 		// $this->_aWhere[] = '`'.$sField.'`="'.$mValue.'"';
-		$this->_aWhere[] = ''.$sField.'='.$mValue.'';
+		$this->_aWhere[] = ''.$sField.'='.(is_string($mValue) ? '"'.$mValue.'"' : $mValue).'';
 	}
 
 	
 	private function _getWhere() {
 		$sWhere = '';
-		//print_r($this->_aWhere);
+		// print_r($this->_aWhere);
 		if (!empty($this->_aWhere)) {
 			$sWhere = ' WHERE ';
 			$sWhere .= implode(' AND ', $this->_aWhere);

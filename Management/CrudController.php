@@ -38,7 +38,7 @@ class CrudController extends FrontController {
 		}
 
 		// slug by used name if empty or changed name
-		if (isset($_POST['dataset']['slug']) && (empty($_POST['dataset']['slug']) || $_POST['dataset']['slug'] != $this->slugify($sName))) {
+		if (isset($sName) && isset($_POST['dataset']['slug']) && (empty($_POST['dataset']['slug']) || $_POST['dataset']['slug'] != $this->slugify($sName))) {
 			$oEntity->setField('slug', $this->slugify($sName));
 		}
 
@@ -98,10 +98,14 @@ class CrudController extends FrontController {
 		}
 		
 		if ($oEntity->update()) {
-			$this->postUpdate();
+			$this->postUpdate($iId);
 
 			$sEditUrl = BASE_URL.'/'.$this->_sCtrlName.'/'.$iId;
-			$this->raiseInfo('Wpis <strong>'.$sName.'</strong> został zmieniony. <a href="'.$sEditUrl.'">Edytuj</a> ponownie.');
+			if (isset($sName)) {
+				$this->raiseInfo('Wpis <strong>'.$sName.'</strong> został zmieniony. <a href="'.$sEditUrl.'">Edytuj</a> ponownie.');
+			} else {
+				$this->raiseInfo('Wpis został zmieniony. <a href="'.$sEditUrl.'">Edytuj</a> ponownie.');
+			}
 
 			$this->addHistoryLog('update', $this->_sCtrlName, $iId);
 
