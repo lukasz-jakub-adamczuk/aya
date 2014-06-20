@@ -156,7 +156,6 @@ class CrudController extends FrontController {
 			} else {
 				$this->raiseError('Wystąpił nieoczekiwany wyjątek.');
 			}
-			$this->_oRenderer->assign('aMsgs', array($aMsg));
 		}
 	}
 
@@ -195,7 +194,6 @@ class CrudController extends FrontController {
 			} else {
 				$this->raiseError('Wystąpił nieoczekiwany wyjątek.');
 			}
-			$this->_oRenderer->assign('aMsgs', array($aMsg));
 		}
 	}
 

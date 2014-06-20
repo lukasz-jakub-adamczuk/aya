@@ -190,7 +190,7 @@ abstract class Controller {
 
 		Time::total(true);
 
-		Debug::show(Time::stats(), 'Time stats');
+		Debug::show(Time::stats(100), 'Time stats');
 		
 		// assign debug info
 		$this->_oRenderer->assign('aLogs', Debug::getLogs());

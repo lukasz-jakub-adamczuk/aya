@@ -42,7 +42,7 @@ class Time {
 		}
 	}
 
-	public static function stats($iThreshold = 100) {
+	public static function stats($iThreshold = 0) {
 		if (empty(self::$_aTotalTime)) {
 			self::total();
 		}

@@ -34,6 +34,7 @@ class Dao {
 			require_once AYA_DIR.'/Dao/Collection.php';
 			$sCollection = 'Collection';
 		}
+		// echo $sCollection;
 		return new $sCollection($sName, $sOwner, $aParams);
 	}
 

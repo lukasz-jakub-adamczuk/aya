@@ -73,6 +73,8 @@ class Entity {
 		Debug::show($this->_sQuery);
 
 		$this->_db->execute("SET NAMES utf8");
+
+		// echo $this->_sQuery;
 		
 		$this->_aDbFields = $this->_db->getRow($this->_sQuery);
 		$this->_bLoaded = 1;
