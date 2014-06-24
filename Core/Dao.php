@@ -3,6 +3,7 @@
 class Dao {
 	
 	public static function entity($sName = null, $mIdentifier = 0, $sOwner = null) {
+		$sName = strtolower($sName) === $sName ? str_replace(' ', '', ucwords(str_replace('-', ' ', $sName))) : $sName;
 		if (file_exists(DAO_DIR.'entities/'.$sName.'Entity.php')) {
 			require_once DAO_DIR.'entities/'.$sName.'Entity.php';
 			$sEntity = $sName.'Entity';
@@ -25,6 +26,7 @@ class Dao {
 	}
 	
 	public static function collection($sName, $sOwner = null, $aParams = null) {
+		$sName = strtolower($sName) === $sName ? str_replace(' ', '', ucwords(str_replace('-', ' ', $sName))) : $sName;
 		if (file_exists(DAO_DIR.'/collections/'.$sName.'Collection.php')) {
 		    //echo 'dao exists...';
 			require_once DAO_DIR.'/collections/'.$sName.'Collection.php';
