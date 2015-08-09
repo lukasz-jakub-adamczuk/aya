@@ -9,7 +9,7 @@ class Paginator {
 	
 	const PAGINATOR_PAGES_LIMIT = 3;
 
-	const PAGINATOR_PAGE_SIZE = 25;
+	const PAGINATOR_PAGE_SIZE = 20;
 	
 	private $_sPagination;
 	
@@ -28,6 +28,8 @@ class Paginator {
 	private $_iSize;
 	
 	private $_iTotal;
+
+	private $_aConfig = array();
 	
 	public function __construct($aNavigator) {
 	    // total items
@@ -45,6 +47,22 @@ class Paginator {
             $this->_iPageSize = $aNavigator['size'];
 		} else {
 			$this->_iPageSize = self::PAGINATOR_PAGE_SIZE;
+		}
+
+		// config
+		$this->_aConfig = array(
+			'outer-wrapper' => null,
+			'outer-wrapper-class' => null,
+			'inner-wrapper' => 'ul',
+			'inner-wrapper-class' => 'paginator',
+			'active-element' => 'a',
+			'active-element-class' => 'active'
+		);
+	}
+
+	public function setOptions($aOptions) {
+		foreach ($aOptions as $key => $value) {
+			$this->_aConfig[$key] = $value;
 		}
 	}
 	
@@ -79,7 +97,9 @@ class Paginator {
 		$iStart = $this->_iPage;
 
 		if ($this->_iTotal > $this->_iPageSize) {
-			$this->_sPagination = '<ul class="paginator">';
+			$this->_sPagination = '';
+			$this->_sPagination .= ($this->_aConfig['outer-wrapper'] ? '<'.$this->_aConfig['outer-wrapper'].'>' : '');
+			$this->_sPagination .= '<ul'.($this->_aConfig['inner-wrapper-class'] ? ' class="'.$this->_aConfig['inner-wrapper-class'].'"' : '').'>';
 
 			$iPages = ceil($this->_iTotal/$this->_iPageSize);
 			
@@ -94,7 +114,7 @@ class Paginator {
 					for ($iPage = 1; $iPage <= $iPages; $iPage++) {
 						if ($iPage < Paginator::PAGINATOR_PAGES_LIMIT || $iPage >= $iPages-Paginator::PAGINATOR_PAGES_LIMIT || ($iPage >= $iStart-1 && $iPage <= $iStart+1)) {
 							if ($iPage == $iStart) {
-								$this->_sPagination .= '<li><a href="'.$sPreLink.($iPage).$sPostLink.'" class="active">'.($iPage).'</a></li>';
+								$this->_sPagination .= '<li'.($this->_aConfig['active-element'] == 'li' ? ' class="'.$this->_aConfig['active-element-class'].'"' : '').'><a href="'.$sPreLink.($iPage).$sPostLink.'"'.($this->_aConfig['active-element'] == 'a' ? ' class="'.$this->_aConfig['active-element-class'].'"' : '').'>'.($iPage).'</a></li>';
 							} else {
 								$this->_sPagination .= '<li><a href="'.$sPreLink.($iPage).$sPostLink.'">'.($iPage).'</a></li>';
 							}
@@ -110,7 +130,7 @@ class Paginator {
 				if ($iPages > 0) {
 					for ($iPage = 1; $iPage <= $iPages; $iPage++) {
 						if ($iPage == $iStart) {
-							$this->_sPagination .= '<li><a href="'.$sPreLink.($iPage).$sPostLink.'" class="active">'.($iPage).'</a></li>';
+							$this->_sPagination .= '<li'.($this->_aConfig['active-element'] == 'li' ? ' class="'.$this->_aConfig['active-element-class'].'"' : '').'><a href="'.$sPreLink.($iPage).$sPostLink.'"'.($this->_aConfig['active-element'] == 'a' ? ' class="'.$this->_aConfig['active-element-class'].'"' : '').'>'.($iPage).'</a></li>';
 						} else {
 							$this->_sPagination .= '<li><a href="'.$sPreLink.($iPage).$sPostLink.'">'.($iPage).'</a></li>';
 						}
@@ -126,6 +146,7 @@ class Paginator {
 						
 			$this->_sPagination = preg_replace('/[%]+/', '<li><span class="separator">...</span></li>', $this->_sPagination);
 			$this->_sPagination .= '</ul>';
+			$this->_sPagination .= ($this->_aConfig['outer-wrapper'] ? '</'.$this->_aConfig['outer-wrapper'].'>' : '');
 			return $this->_sPagination;
 		} else {
 			return '';

@@ -23,11 +23,15 @@ abstract class View {
 		$this->_oRenderer = $oRenderer;
 	}
 
-	public function init() {
+	public function run() {
+		$this->init();
+		
 		$this->beforeFill();
 		$this->fill();
 		$this->afterFill();
 	}
+
+	public function init() {}
 	
 	public function fill() {}
 

@@ -49,7 +49,7 @@ class Time {
 		$aStats = array();
 		foreach (self::$_aTotalTime as $tk => $time) {
 			if ($time > $iThreshold) {
-				$aStats[$tk] = $time;		
+				$aStats[$tk] = $time;
 			}
 		}
 		asort($aStats);

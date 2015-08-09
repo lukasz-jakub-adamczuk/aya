@@ -100,44 +100,55 @@ abstract class Controller {
 		// DB params serialized in constant
 		$this->_aParams = unserialize(DB_SOURCE);
 
+		Time::start('db-init');
 		// DB handle
 		$this->_db = Db::getInstance($this->_aParams);
+		Time::stop('db-init');
 
 		// session init
 		session_start();
 
-		// session_unset($_SESSION['user']);
+		// create container
+		User::instance();
 
+		// session_unset($_SESSION['user']);
+		
 		// template engine
 		require_once TPL_ENGINE_DIR.'/libs/Smarty.class.php';
 		
 		$this->_oRenderer = new Smarty;
+
+		// $this->_oRenderer->caching = 2;
+		// $this->_oRenderer->cache_lifetime = 60;
+		// $this->_oRenderer->compile_check = false;
 
 		Debug::show(TPL_DIR.THEME_DIR, 'template_dir');
 		Debug::show(TPL_C_DIR.THEME_DIR, 'template_c_dir');
 
 		$this->_oRenderer->setTemplateDir(TPL_DIR.THEME_DIR);
 		$this->_oRenderer->setCompileDir(TPL_C_DIR.THEME_DIR);
-		// $this->setConfigDir(GUESTBOOK_DIR . 'configs');
+		$this->_oRenderer->setConfigDir(APP_DIR.'/configs');
+		// $this->_oRenderer->setCacheDir(APP_DIR.'/cache');
 		// $this->setCacheDir(GUESTBOOK_DIR . 'cache');
+		Time::stop('smarty-init');
 
 		
 		Time::start('ctrl-init');
 		$this->init();
 
+		// could be use for authentication
 		$this->_afterInit();
+		
 		Time::stop('ctrl-init');
 
-		Debug::show($this->_sTemplateName, 'template before auth()');
+		// Debug::show($this->_sTemplateName, 'template before auth()');
 
-		// auth or not ?
-		if (AUTH_MODE) {
-			if (isset($_SESSION['user'])) {
-				$this->actionForward('index', 'auth');
-			} else {
-				$this->actionForward('index', 'auth', true);
-			}
-		}
+		Debug::show($this->getCtrlName(), 'ctrl sent to templates in ctrl');
+		Debug::show($this->getActionName(), 'ctrl sent to templates in ctrl');
+		$this->_oRenderer->assign('ctrl', $this->getCtrlName());
+		$this->_oRenderer->assign('act', $this->getActionName());
+
+		
 
 
 		// TODO find better way to transform
@@ -152,55 +163,80 @@ abstract class Controller {
 		$sMethodName = $sActionName.'Action';
 
 		// echo $sMethodName;
+		$sCacheString = CACHE_DIR.str_replace(BASE_URL, '', $_SERVER['REQUEST_URI']).'-file';
+		// print_r($_SERVER);
+		// echo BASE_URL;
+		if (CACHE_OUTPUT && file_exists($sCacheString)) {
+			$this->_oRenderer->display($sCacheString);
+			// echo file_get_contents($sCacheString);
+		} else {
+			// controller action
+			if (method_exists($this, $sMethodName)) {
+				$this->runBeforeMethod();
 
-		// controller action
-		if (method_exists($this, $sMethodName)) {
-			$this->runBeforeMethod();
+				// Debug::show($this->getTemplateName(), 'tpl name in ctrl');
+				$this->$sMethodName();
+				// Debug::show($this->getTemplateName(), 'tpl name in ctrl');
+				Time::stop('ctrl-method');
 
-			// Debug::show($this->getTemplateName(), 'tpl name in ctrl');
-			$this->$sMethodName();
-			// Debug::show($this->getTemplateName(), 'tpl name in ctrl');
-			Time::stop('ctrl-method');
-
-			// including view for action
-			$sViewName = $this->_sViewName.'View';
-			
-			if (file_exists(VIEW_DIR.'/'.$sViewName.'.php')) {
-				require_once VIEW_DIR.'/'.$sViewName.'.php';
+				// including view for action
+				$sViewName = $this->_sViewName.'View';
 				
-				$this->_oView = new $sViewName($this->_oRenderer);
-				
-				$this->_oView->init();
+				if (file_exists(VIEW_DIR.'/'.$sViewName.'.php')) {
+					require_once VIEW_DIR.'/'.$sViewName.'.php';
+					
+					$this->_oView = new $sViewName($this->_oRenderer);
+					
+					$this->_oView->run();
+				}
+				$this->runAfterMethod();
+
+				// $this->_oRenderer->assign('ctrl', $this->getCtrlName());
+				// $this->_oRenderer->assign('act', $this->getActionName());
+			} else {
+				$this->runAfterMethod();
+
+				// 404 // Method not found
+				$this->_oRenderer->assign('content', '404');
 			}
-			$this->runAfterMethod();
-		} else {
-			$this->runAfterMethod();
+			Time::stop('ctrl-action');
 
-			// 404 // Method not found
-			$this->_oRenderer->assign('content', '404');
-		}
-		Time::stop('ctrl-action');
+			// $this->_oRenderer->assign('ctrl', $this->_sCtrlName);
+			// $this->_oRenderer->assign('act', $this->_sActionName);
 
-		$this->_oRenderer->assign('ctrl', $this->_sCtrlName);
-		$this->_oRenderer->assign('act', $this->_sActionName);
+			Debug::show('flow ends...');
 
-		Debug::show('flow ends...');
+			Time::stop('controller');
 
-		Time::stop('controller');
+			Time::total(true);
 
-		Time::total(true);
+			Debug::show(Time::stats(), 'Time stats');
 
-		Debug::show(Time::stats(100), 'Time stats');
-		
-		// assign debug info
-		$this->_oRenderer->assign('aLogs', Debug::getLogs());
+			Time::stop();
+			$this->_oRenderer->assign('sServerTime', Time::get());
+			
+			// assign debug info
+			$this->_oRenderer->assign('aLogs', Debug::getLogs());
 
-		// print_r(Debug::getLogs());
+			// assign messages
+			$this->_oRenderer->assign('aMsgs', MessageList::get());
 
-		if ($this->_sContentType != 'html') {
-			$this->_oRenderer->display('layout.'.$this->_sContentType.'.tpl');
-		} else {
-			$this->_oRenderer->display('layout.tpl');
+			// print_r(Debug::getLogs());
+
+			if ($this->_sContentType != 'html') {
+				$sOutput = $this->_oRenderer->fetch('layout.'.$this->_sContentType.'.tpl');
+			} else {
+				$sOutput = $this->_oRenderer->fetch('layout.tpl');
+			}
+			echo $sOutput;
+
+			if (CACHE_OUTPUT) {
+				$sCacheDir = dirname($sCacheString);
+				if (!file_exists($sCacheDir)) {
+					mkdir($sCacheDir, 0777, true);
+				}
+				file_put_contents($sCacheString, $sOutput);
+			}
 		}
 	}
 
@@ -247,6 +283,7 @@ abstract class Controller {
 				}
 			}
 		}
+		// print_r($aParams);
 		Debug::show($aParams, 'params from redirect action');
 		Debug::show($_GET, 'params assigned to $_GET');
 
@@ -271,12 +308,19 @@ abstract class Controller {
 			Debug::show($oCtrl->getTemplateName(), 'template in actionForward() $oCtrl ctrl');
 			Debug::show(array('ctrl' => $sCtrlName, 'method' => $sMethodName), 'ctrl and method in actionForward()');
 			if (method_exists($oCtrl, $sMethodName)) {
+				$oCtrl->runBeforeMethod();
+
 				// action method in ctrl
 				$oCtrl->$sMethodName();
 
 				if ($bOverrideTemplate) {
 					// set template name to parent initial ctrl
 					$this->setTemplateName($oCtrl->getTemplateName());
+
+					Debug::show($oCtrl->getCtrlName(), 'ctrl sent to tempplates in actionForward');
+					Debug::show($oCtrl->getActionName(), 'ctrl sent to tempplates in actionForward');
+					$this->_oRenderer->assign('ctrl', $oCtrl->getCtrlName());
+					$this->_oRenderer->assign('act', $oCtrl->getActionName());
 				}
 				
 				// view including
@@ -288,7 +332,7 @@ abstract class Controller {
 					require_once VIEW_DIR.DS.$sViewName.'.php';
 					$oCtrl->_oView = new $sViewName($this->_oRenderer);
 					
-					$oCtrl->_oView->init();
+					$oCtrl->_oView->run();
 				}
 			
 				$oCtrl->runAfterMethod();

@@ -13,7 +13,7 @@ class Collection {
 
 	protected $_mId;
 	
-	protected $_iSize = 5;
+	protected $_iSize = 25;
 
 	protected $_aNavigator;
 
@@ -50,7 +50,8 @@ class Collection {
 		// nazwa tabeli
 		$this->_sTable = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', str_replace('-', '_', $this->_sName)));
 
-		$this->_mId = 'id_'.$this->_sTable;
+		$this->_mId = isset($aParams['id']) ? $aParams['id'] : 'id_'.$this->_sTable;
+		// $this->_mId = 'id_'.$this->_sTable;
 
 		if ($aParams) {
 			if (isset($aParams['search'])) {
@@ -66,10 +67,10 @@ class Collection {
 		Debug::show($this->_sOwner, 'contruct owner');
 		$this->_db = Db::getInstance();
 
-		$this->_init();
+		// $this->_init();
 	}
 
-	protected function _init() {
+	public function init() {
 		// default navigator values (sorting)
 		$this->_defaultNavigator();
 		// Debug::show($this->_aNavigator, '$this->_aNavigator');
@@ -111,6 +112,8 @@ class Collection {
 		}
 		
 		$aReserved = array('page', 'size', 'sort', 'order', 'search');
+
+
 		
 		foreach ($this->_aNavigator as $key => $val) {
 			if (!in_array($key, $aReserved)) {
@@ -141,7 +144,8 @@ class Collection {
 		Debug::show($this->_sOwner, 'load() method');
 
 		if ($iSize) {
-			$this->_iSize = $iSize;
+			$this->_aNavigator['size'] = $this->_iSize = $iSize;
+
 		}
 
 		// tmp hack
@@ -165,7 +169,7 @@ class Collection {
 
 		Debug::show($this->_sQuery);
 
-		// echo '_'.$this->_sQuery.'_';
+		// echo '_from Collection.php: '.$this->_sQuery.'_';
 		// var_dump('_'.$this->_sQuery.'_');
 
 		$this->_aRows = $this->_db->getArray($this->_sQuery, $this->_mId);
@@ -181,6 +185,11 @@ class Collection {
 	public function getCount() {
 		$this->_sQuery = 'SELECT COUNT('.$this->_mId.') AS total '.$this->getFromPart().''.$this->_getWhere().'';
 		return $this->_db->getOne($this->_sQuery, 'total');
+	}
+
+	public function getOne($query) {
+		// $this->_sQuery = 'SELECT COUNT('.$this->_mId.') AS total '.$this->getFromPart().''.$this->_getWhere().'';
+		return $this->_db->getOne($query);
 	}
 
 

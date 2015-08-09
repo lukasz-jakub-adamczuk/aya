@@ -77,8 +77,8 @@ class Db extends Singleton {
 	private function __construct($aConfig) {
 		//$this->_aConfig = $aConfig;
 		self::$_aConfig = $aConfig;
-		$this->_handle = mysql_connect($aConfig['host'], $aConfig['user'], $aConfig['password'] ) or die( $this->error() );
-		$this->_database = mysql_select_db($aConfig['database'], $this->_handle) or die( $this->error() );
+		$this->_handle = @mysql_connect($aConfig['host'], $aConfig['user'], $aConfig['password'] ) or die( $this->error() );
+		$this->_database = @mysql_select_db($aConfig['database'], $this->_handle) or die( $this->error() );
 
 		$this->_iCounter = 0;
 	}

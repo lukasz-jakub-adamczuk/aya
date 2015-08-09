@@ -7,6 +7,10 @@ class InfoView extends View {
 	public function configureForm(&$oForm) {
 		// inheritance
 	}
+
+	public function postProcessDataset($aFields) {
+		return $aFields;
+	}
 	
 	public function fill() {
 		// entity
@@ -18,18 +22,27 @@ class InfoView extends View {
 
 			// echo 'id_'.$this->_sDaoIndex;
 
-			$this->_oRenderer->assign('aFields', $oInstance->getFields());
+			$aFields = $this->postProcessDataset($oInstance->getFields());
+
+			$this->_oRenderer->assign('aFields', $aFields);
+
+			// $this->postPoccessFields($aFields);
 
 			Debug::show($oInstance->getFields());
 			
 			$sFormMode = 'update';
 		} else {
 			$sFormMode = 'insert';
+
+			// $aFields = array();
 		}
 
 		$this->_oRenderer->assign('sFormMode', $sFormMode);
 
-		
+		// TODO better ctrl name
+		$this->_oRenderer->assign('sFormMainPartTemplate', 'forms/'.$_GET['ctrl'].'-info-main.tpl');
+		$this->_oRenderer->assign('sFormSubPartTemplate', 'forms/'.$_GET['ctrl'].'-info-sub.tpl');
+
 		
 		// insert or update with errors
 		if (isset($_POST['dataset'])) {

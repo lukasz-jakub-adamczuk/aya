@@ -12,10 +12,12 @@ class Entity {
 	
 	protected $_db;
 	
+	// values in db
 	protected $_aDbFields = array();
 	
 	// protected $_bModified;
 
+	// values set manually
 	protected $_aQueryFields;
 	
 	protected $_sQuery;
@@ -25,7 +27,8 @@ class Entity {
 	protected $_sWhere;
 	
 	public function __construct($mIdentifier = 0, $sIdLabel = null) {
-		$this->_sTable = strtolower(get_class($this)) == 'entity' ? $sIdLabel : null;
+		// $this->_sTable = strtolower(get_class($this)) == 'entity' ? $sIdLabel : null;
+		$this->_sTable = $sIdLabel;
 		$this->_db = DB::getInstance();
 
 		// echo $this->_sTable;
@@ -82,6 +85,17 @@ class Entity {
 		// $this->_bModified = 0;
 	}
 
+	public function hasField($sField) {
+		if ($this->_bLoaded == 0) {
+			$this->load();
+		}
+		if (isset($this->_aDbFields[$sField])) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	public function getField($sField) {
 		if ($this->_bLoaded == 0) {
 			$this->load();
@@ -93,9 +107,12 @@ class Entity {
 		}
 	}
 
-	public function getFields() {
+	public function getFields($bReturnObjectId = false) {
 		if($this->_bLoaded == 0) {
 			$this->load();
+		}
+		if ($bReturnObjectId) {
+			return array_merge($this->_aDbFields, array('id' => $this->_mId));
 		}
 		return $this->_aDbFields;
 	}
@@ -139,11 +156,12 @@ class Entity {
 
 	public function unsetField($sField) {
 		if (isset($this->_aQueryFields[$sField])) {
-			unsset($this->_aQueryFields[$sField]);
+			unset($this->_aQueryFields[$sField]);
 		}
 	}
 
 	public function insert($bSetNamesUtf8 = false) {
+		// print_r($this->_aQueryFields);
 		$q = 'INSERT INTO '.$this->_sTable.'(';
 		foreach ($this->_aQueryFields as $key => $val) {
 			$q .= '`'.$key.'`, ';
@@ -151,10 +169,14 @@ class Entity {
 		$q = substr($q, 0, -2);
 		$q .= ') VALUES (';
 		foreach ($this->_aQueryFields as $key => $val) {
-			if ($val == '_NULL_') {
+			// echo $key.':'.$val;
+			// echo $()
+			if ($val === '_NULL_') {
+				// echo '0 is null;  ';
 				$q .= 'NULL, ';
 			} else {
-				$q .= '"'.addslashes($val).'", ';
+				// var_dump($val);
+				$q .= '"'.is_string($val) ? '"'.addslashes($val).'", ' : ''.addslashes($val).', ' ;
 			}
 		}
 		$q = substr($q, 0, -2);
@@ -178,7 +200,7 @@ class Entity {
 	public function update() {
 		$q = 'UPDATE '.$this->_sTable.' SET ';
 		foreach ($this->_aQueryFields as $key => $val) {
-			if ($val == '_NULL_') {
+			if ($val == '__NULL__') {
 				$q .= '`'.$key.'`=NULL, ';
 			} else {
 				$q .= '`'.$key.'`="'.addslashes($val).'", ';
@@ -191,9 +213,8 @@ class Entity {
 
 		if ($this->_db->execute($this->_sQuery)) {
 			return true;
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	public function delete() {

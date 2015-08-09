@@ -3,9 +3,30 @@ require_once AYA_DIR.'/Core/Controller.php';
 
 class FrontController extends Controller {
 
+	protected function _afterInit() {
+		
+	}
+
 	public function runBeforeMethod() {
 		// Breadcrumbs::add('', 'squarezone.pl', 'icon-home');
-		Breadcrumbs::add($this->getCtrlName(), $this->getCtrlName());
+		$aItem = array(
+			'name' => 'ctrl',
+			'url' => ValueMapper::getUrl($this->getCtrlName()),
+			'text' => ValueMapper::getName($this->getCtrlName()),
+		);
+		Breadcrumbs::add($aItem);
+
+		// Breadcrumbs::add($this->_oRenderer->getgetCtrlName(), $this->getCtrlName());
+
+		// $this->_oRenderer->assign('ctrl', $this->getCtrlName());
+		// $this->_oRenderer->assign('act', $this->getActionName());
+
+		// echo 'a';
+
+		PostmanNotification::analyzeFeeds();
+
+		$this->_oRenderer->assign('aCounters', PostmanNotification::getFeedsCounters());
+		$this->_oRenderer->assign('iTotal', PostmanNotification::getFeedsTotal());
 	}
 	
 	// TODO should name init()
@@ -29,15 +50,21 @@ class FrontController extends Controller {
 		if (defined('SITE_URL')) {
 			$this->_oRenderer->assign('site', SITE_URL);
 		}
-		$this->_oRenderer->assign('ctrl', $this->getCtrlName());
-		$this->_oRenderer->assign('act', $this->getActionName());
-	}
-	
-	public function _indexAction() {
+
+		// Debug::show($this->getCtrlName(), 'ctrl sent to tempplates');
+		// Debug::show($this->getActionName(), 'ctrl sent to tempplates');
+		// $this->_oRenderer->assign('ctrl', $this->getCtrlName());
+		// $this->_oRenderer->assign('act', $this->getActionName());
+
+		// $this->_oRenderer->assign('ctrl', $_GET['ctrl']);
+		// $this->_oRenderer->assign('act', $_GET['act']);
+
 		
 	}
+	
+	public function indexAction() {}
 
-	public function _infoAction() {}
+	public function infoAction() {}
 
 	// action to set special params in session
 	public function setAction() {
