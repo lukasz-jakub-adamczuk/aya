@@ -2,15 +2,15 @@
 
 class Starter {
 
-	public static function init() {
-		// echo 'init...';
+    public static function init() {
+        // echo 'init...';
 
-		// echo 'load necessary...';
+        // echo 'load necessary...';
 
-		// require_once AYA_DIR.'/Core/Time.php';
+        // require_once AYA_DIR.'/Core/Time.php';
 
-		// Time::start();
-		// Time::stop();
-		// Time::show();
-	}
+        // Time::start();
+        // Time::stop();
+        // Time::show();
+    }
 }
