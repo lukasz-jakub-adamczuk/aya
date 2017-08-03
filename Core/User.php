@@ -31,6 +31,10 @@ class User {
         }
     }
 
+    public static function get() {
+        return self::$_aUser;
+    }
+
     public static function reset() {
         self::$_aUser = null;
     }

@@ -192,9 +192,9 @@ class Entity {
         
         if ($statement = $this->_db->execute($q)) {
             // return $this->_mId = mysql_insert_id();
-            $result = $statement->fetch(PDO::FETCH_ASSOC);
+            //$result = $statement->fetch(PDO::FETCH_ASSOC);
             
-            return $this->_mId = $result[$this->_sIdLabel];
+            return $this->_mId = $this->_db->pdo()->lastInsertId();
         } else {
             return false;
         }

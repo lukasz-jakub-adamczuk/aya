@@ -64,7 +64,9 @@ abstract class Controller {
         $var = '_'.$name.'Name';
         $val = $this->$var;
         if ($case == 'caps') {
-            return str_replace(' ', '', ucwords(str_replace('-', ' ', $this->$var)));
+            $var = '_'.$name.'Name';
+            $val = $this->$var;
+            return str_replace(' ', '', ucwords(str_replace('-', ' ', $val)));
         } elseif ($case == 'lower') {
             return strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $this->$var));
         } else {
@@ -117,6 +119,9 @@ abstract class Controller {
         // template engine
         require_once TPL_ENGINE_DIR.'/libs/Smarty.class.php';
         
+        // require_once TPL_ENGINE_DIR.'/libs/Autoloader.php';
+        // Smarty_Autoloader::register();
+
         $this->_renderer = new Smarty;
 
         // $this->_renderer->caching = 2;
@@ -164,7 +169,7 @@ abstract class Controller {
         $methodName = $actionName.'Action';
 
         // echo $methodName;
-        $sCacheString = CACHE_DIR.'/html'.str_replace(BASE_PATH, '', $_SERVER['REQUEST_URI']).'/index.html';
+        $sCacheString = CACHE_DIR . '/html'.str_replace($_SERVER['HTTP_HOST'], '', $_SERVER['REQUEST_URI']).'/index.html';
         // print_r($_SERVER);
         // echo BASE_URL;
         if (CACHE_OUTPUT && file_exists($sCacheString)) {
@@ -242,8 +247,12 @@ abstract class Controller {
     }
 
     public function init() {
-        // $this->setViewName($this->getCName('ctrl').$this->getName('action'));
-        $this->setViewName($this->getCtrlName().$this->getActionName());
+        // $this->setViewName($this->getName('ctrl').$this->getName('action'));
+        // echo $this->getCtrlName();
+        // echo $this->getActionName();
+        $this->setViewName(Text::toPascalCase($this->getCtrlName().' '.$this->getActionName()));
+
+        // echo $this->getViewName();
 
         Debug::show($this->getViewName(), 'view name in init');
 

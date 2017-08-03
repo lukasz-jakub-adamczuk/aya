@@ -174,9 +174,9 @@ class Db extends Singleton {
         $this->_query = $this->execute($rs);
         // echo $rs;
         // $res = @mysql_fetch_array($this->_query, $this->_res_type);
-        $res = [];
-        if (is_array($res)) {
-            return current($res);//['0'];
+        $result = $this->_query->fetch($this->_res_type);
+        if (is_array($result)) {
+            return current($result);//['0'];
         }
     }
 
