@@ -1,5 +1,11 @@
 <?php
 
+namespace Aya\Core;
+
+use Aya\Core\Debug;
+use Aya\Helper\ValueMapper;
+// use Renaissance\Controller as Controller;
+
 class Router {
 
     public static function init() {
@@ -44,10 +50,14 @@ class Router {
         // echo $sAction;
 
         $sControllerName = str_replace(' ', '', ucwords(str_replace('-', ' ', $sController))).'Controller';
+
+        $controllerFile = CTRL_DIR.'/'.$sControllerName.'.php';
         
-        if (file_exists(CTRL_DIR.'/'.$sControllerName.'.php')) {
-            require_once CTRL_DIR.'/'.$sControllerName.'.php';
-            $oController = new $sControllerName;
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+            $ctrl = "Renaissance\\Controller\\$sControllerName";
+            $oController = new $ctrl;
+            // $oController = new Renaissance\Controller\{$sControllerName};
             
             $oController->setCtrlName($sController);
             $oController->setActionName($sAction);
@@ -55,7 +65,8 @@ class Router {
             if (file_exists(CTRL_DIR.'/ErrorController.php')) {
                 require_once CTRL_DIR.'/ErrorController.php';
             } else {
-                require_once AYA_DIR.'/Core/ErrorController.php';
+                // require_once AYA_DIR.'/Core/ErrorController.php';
+                require_once AYA_DIR.'/src/Aya/Core/ErrorController.php';
             }
             $oController = new ErrorController;
         }

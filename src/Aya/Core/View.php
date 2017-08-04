@@ -1,5 +1,7 @@
 <?php
 
+namespace Aya\Core;
+
 abstract class View {
 
     protected $_sViewName;

@@ -1,5 +1,10 @@
 <?php
 
+namespace Aya\Dao;
+
+use Aya\Core\Db;
+use Aya\Core\Debug;
+
 class Entity {
     
     protected $_mId;
@@ -29,7 +34,7 @@ class Entity {
     public function __construct($mIdentifier = 0, $sIdLabel = null) {
         // $this->_sTable = strtolower(get_class($this)) == 'entity' ? $sIdLabel : null;
         $this->_sTable = $sIdLabel;
-        $this->_db = DB::getInstance();
+        $this->_db = Db::getInstance();
 
         // echo $this->_sTable;
 

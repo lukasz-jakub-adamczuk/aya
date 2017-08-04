@@ -1,4 +1,9 @@
 <?php
+
+namespace Aya\Core;
+
+use \PDO;
+
 abstract class Singleton {
     protected static $_instance;
     

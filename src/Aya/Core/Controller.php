@@ -1,5 +1,17 @@
 <?php
 
+namespace Aya\Core;
+
+use Aya\Core\Db;
+use Aya\Core\User;
+use Aya\Debug\Panel;
+use Aya\Helper\MessageList;
+use Aya\Helper\ValueMapper;
+use Aya\Helper\Text;
+use Aya\Helper\Time;
+
+use \Smarty;
+
 abstract class Controller {
 
     protected $_contentType;
@@ -56,22 +68,6 @@ abstract class Controller {
 
     public function getContentType() {
         return $this->_contentType;
-    }
-
-    // universal method to get expected name
-    public function getName($name, $case = 'caps') {
-        // $var = '_s'.ucfirst($name).'Name';
-        $var = '_'.$name.'Name';
-        $val = $this->$var;
-        if ($case == 'caps') {
-            $var = '_'.$name.'Name';
-            $val = $this->$var;
-            return str_replace(' ', '', ucwords(str_replace('-', ' ', $val)));
-        } elseif ($case == 'lower') {
-            return strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $this->$var));
-        } else {
-            return $this->$val;
-        }
     }
     
     public function getCtrlName() {
@@ -149,6 +145,9 @@ abstract class Controller {
 
         // Debug::show($this->_templateName, 'template before auth()');
 
+        Panel::setVar('ctrl', $this->getCtrlName());
+        Panel::setVar('act', $this->getActionName());
+
         Debug::show($this->getCtrlName(), 'ctrl sent to templates in ctrl');
         Debug::show($this->getActionName(), 'ctrl sent to templates in ctrl');
         $this->_renderer->assign('ctrl', $this->getCtrlName());
@@ -185,13 +184,18 @@ abstract class Controller {
                 // Debug::show($this->getTemplateName(), 'tpl name in ctrl');
                 Time::stop('ctrl-method');
 
+
+                Panel::setVar('view', $this->getViewName());
+
                 // including view for action
                 $viewName = $this->_viewName.'View';
+                $viewFile = VIEW_DIR.'/'.$viewName.'.php';
                 
-                if (file_exists(VIEW_DIR.'/'.$viewName.'.php')) {
-                    require_once VIEW_DIR.'/'.$viewName.'.php';
-                    
-                    $this->_view = new $viewName($this->_renderer);
+                if (file_exists($viewFile)) {
+                    require_once $viewFile;
+                    $view = "Renaissance\\View\\$viewName";
+
+                    $this->_view = new $view($this->_renderer);
                     
                     $this->_view->run();
                 }
@@ -227,6 +231,8 @@ abstract class Controller {
             // assign messages
             $this->_renderer->assign('aMsgs', MessageList::get());
 
+            $this->_renderer->assign('debugPanel', Panel::info());
+
             // print_r(Debug::getLogs());
 
             if ($this->_contentType != 'html') {
@@ -259,7 +265,7 @@ abstract class Controller {
         
 
         // try '<ctrl_name>-<action_name>.tpl'
-        $templateName = $this->getCtrlName('ctrl', 'lower').'-'.$this->getName('action', 'lower');
+        $templateName = $this->getCtrlName().'-'.$this->getActionName();
         Debug::show($templateName, '1. template init');
         if (!file_exists(TPL_DIR.THEME_DIR.DS.$templateName.'.tpl')) {
             // try 'all-<action_name>.tpl'
@@ -272,6 +278,8 @@ abstract class Controller {
             }
         }
         $this->setTemplateName($templateName);
+
+        Panel::setVar('tpl', $this->getTemplateName());
 
         
     }

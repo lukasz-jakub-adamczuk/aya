@@ -1,5 +1,7 @@
 <?php
 
+namespace Aya\Helper;
+
 class MessageList {
 
     private static $_aMessages = array();

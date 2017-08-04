@@ -1,5 +1,7 @@
 <?php
 
+namespace Aya\Helper;
+
 class Time {
 
     private static $_aStartTime = array();

@@ -1,12 +1,16 @@
 <?php
 
+namespace Aya\Core;
+
 class Dao {
     
     public static function entity($sName = null, $mIdentifier = 0) {
         $sName = strtolower($sName) === $sName ? str_replace(' ', '', ucwords(str_replace('-', ' ', $sName))) : $sName;
-        if (file_exists(DAO_DIR.'/entities/'.$sName.'Entity.php')) {
-            require_once DAO_DIR.'/entities/'.$sName.'Entity.php';
-            $sEntity = $sName.'Entity';
+        if (file_exists(DAO_DIR.'/Entity/'.$sName.'Entity.php')) {
+            require_once DAO_DIR.'/Entity/'.$sName.'Entity.php';
+
+            $entity = "Dao\\Entity\\$sName";
+            $sEntity = $entity.'Entity';
         } else {
             require_once AYA_DIR.'/Dao/Entity.php';
             $sEntity = 'Entity';
@@ -27,10 +31,13 @@ class Dao {
     
     public static function collection($sName, $sOwner = null, $aParams = null) {
         $sName = strtolower($sName) === $sName ? str_replace(' ', '', ucwords(str_replace('-', ' ', $sName))) : $sName;
-        if (file_exists(DAO_DIR.'/collections/'.$sName.'Collection.php')) {
+        $collectionFile = DAO_DIR.'/Collection/'.$sName.'Collection.php';
+        if (file_exists($collectionFile)) {
             // echo 'dao exists...';
-            require_once DAO_DIR.'/collections/'.$sName.'Collection.php';
-            $sCollection = $sName.'Collection';
+            require_once $collectionFile;
+            $collectionName = $sName.'Collection';
+            $sCollection = "Dao\\Collection\\$collectionName";
+            // $sCollection = $collection.'Collection';
         } else {
             //echo 'dao not exists...';
             require_once AYA_DIR.'/Dao/Collection.php';
