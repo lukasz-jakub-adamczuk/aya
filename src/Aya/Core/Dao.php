@@ -4,22 +4,22 @@ namespace Aya\Core;
 
 class Dao {
     
-    public static function entity($sName = null, $mIdentifier = 0) {
-        $sName = strtolower($sName) === $sName ? str_replace(' ', '', ucwords(str_replace('-', ' ', $sName))) : $sName;
-        if (file_exists(DAO_DIR.'/Entity/'.$sName.'Entity.php')) {
-            require_once DAO_DIR.'/Entity/'.$sName.'Entity.php';
+    public static function entity($name = null, $mIdentifier = 0) {
+        $name = strtolower($name) === $name ? str_replace(' ', '', ucwords(str_replace('-', ' ', $name))) : $name;
+        if (file_exists(DAO_DIR.'/Entity/'.$name.'Entity.php')) {
+            require_once DAO_DIR.'/Entity/'.$name.'Entity.php';
 
-            $entity = "Dao\\Entity\\$sName";
+            $entity = "Dao\\Entity\\$name";
             $sEntity = $entity.'Entity';
         } else {
-            require_once AYA_DIR.'/Dao/Entity.php';
-            $sEntity = 'Entity';
+            require_once AYA_DIR.'/src/Aya/Dao/Entity.php';
+            $sEntity = "Aya\\Dao\\Entity";
         }
-        if ($sName) {
-            if (strpos($sName, '-') !== false) {
-                $sIdLabel = strtolower(str_replace('-', '_', $sName));
+        if ($name) {
+            if (strpos($name, '-') !== false) {
+                $sIdLabel = strtolower(str_replace('-', '_', $name));
             } else {
-                $sIdLabel = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $sName));
+                $sIdLabel = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $name));
             }
         }
         if (isset($sIdLabel)) {
@@ -29,22 +29,22 @@ class Dao {
         }
     }
     
-    public static function collection($sName, $sOwner = null, $aParams = null) {
-        $sName = strtolower($sName) === $sName ? str_replace(' ', '', ucwords(str_replace('-', ' ', $sName))) : $sName;
-        $collectionFile = DAO_DIR.'/Collection/'.$sName.'Collection.php';
+    public static function collection($name, $sOwner = null, $aParams = null) {
+        $name = strtolower($name) === $name ? str_replace(' ', '', ucwords(str_replace('-', ' ', $name))) : $name;
+        $collectionFile = DAO_DIR.'/Collection/'.$name.'Collection.php';
         if (file_exists($collectionFile)) {
             // echo 'dao exists...';
             require_once $collectionFile;
-            $collectionName = $sName.'Collection';
+            $collectionName = $name.'Collection';
             $sCollection = "Dao\\Collection\\$collectionName";
             // $sCollection = $collection.'Collection';
         } else {
             //echo 'dao not exists...';
-            require_once AYA_DIR.'/Dao/Collection.php';
-            $sCollection = 'Collection';
+            require_once AYA_DIR.'/src/Aya/Dao/Collection.php';
+            $sCollection = "Aya\\Dao\\Collection";
         }
         // echo $sCollection;
-        return new $sCollection($sName, $sOwner, $aParams);
+        return new $sCollection($name, $sOwner, $aParams);
     }
 
 }

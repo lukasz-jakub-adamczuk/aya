@@ -5,6 +5,8 @@ namespace Aya\Dao;
 use Aya\Core\Db;
 use Aya\Core\Debug;
 
+use Aya\Exception\MissingEntityException;
+
 class Entity {
     
     protected $_mId;
@@ -50,7 +52,7 @@ class Entity {
         }
     }
     
-    // protected function _getShortClassName($sMode = null) {
+    // protected function _getShortClasname($sMode = null) {
     //     if ($sMode == 'lowercase') {
     //         return strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', str_replace('Entity', '', get_class($this))));
     //     } else {
@@ -118,6 +120,9 @@ class Entity {
         }
         if ($bReturnObjectId) {
             return array_merge($this->_aDbFields, array('id' => $this->_mId));
+        }
+        if (empty($this->_aDbFields)) {
+            throw new MissingEntityException();
         }
         return $this->_aDbFields;
     }

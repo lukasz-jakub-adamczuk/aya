@@ -3,8 +3,10 @@
 namespace Aya\Core;
 
 use Aya\Core\Db;
+use Aya\Core\Logger;
 use Aya\Core\User;
 use Aya\Debug\Panel;
+use Aya\Exception\MissingEntityException;
 use Aya\Helper\MessageList;
 use Aya\Helper\ValueMapper;
 use Aya\Helper\Text;
@@ -197,7 +199,13 @@ abstract class Controller {
 
                     $this->_view = new $view($this->_renderer);
                     
-                    $this->_view->run();
+                    try {
+                        $this->_view->run();
+                    } catch (MissingEntityException $e) {
+                        $this->setTemplateName('404');
+                        Logger::logStandardRequest('404');
+                        // $this->_renderer->assign('content', '404');
+                    }
                 }
                 $this->runAfterMethod();
 
@@ -265,11 +273,11 @@ abstract class Controller {
         
 
         // try '<ctrl_name>-<action_name>.tpl'
-        $templateName = $this->getCtrlName().'-'.$this->getActionName();
+        $templateName = $this->getCtrlName().'-'.Text::toLowerCase($this->getActionName());
         Debug::show($templateName, '1. template init');
         if (!file_exists(TPL_DIR.THEME_DIR.DS.$templateName.'.tpl')) {
             // try 'all-<action_name>.tpl'
-            $templateName = 'all-'.$this->getActionName();
+            $templateName = 'all-'.Text::toLowerCase($this->getActionName());
             Debug::show($templateName, '2. template init');
             if (!file_exists(TPL_DIR.THEME_DIR.DS.$templateName.'.tpl')) {
                 // try index.tpl

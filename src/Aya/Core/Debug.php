@@ -10,7 +10,7 @@ class Debug {
         
     }
 
-    public static function show($mVariable, $sName = null, $sLogType = null) {
+    public static function show($mVariable, $name = null, $sLogType = null) {
         $aBacktrace = debug_backtrace();
 
         // print_r(debug_backtrace());
@@ -27,8 +27,8 @@ class Debug {
 
         $aFileParts = explode('/', $aBacktrace[0]['file']);
         $aBacktrace[0]['file_short'] = end($aFileParts);
-        if ($sName) {
-            $aBacktrace[0]['name'] = $sName;
+        if ($name) {
+            $aBacktrace[0]['name'] = $name;
         }
         if ($sLogType) {
             $aBacktrace[0]['logtype'] = $sLogType;
