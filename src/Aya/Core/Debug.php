@@ -4,7 +4,7 @@ namespace Aya\Core;
 
 class Debug {
 
-    private static $_aLogs = array();
+    private static $_aLogs = [];
 
     public static function log($sFilename, $aData) {
         

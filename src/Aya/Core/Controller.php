@@ -316,9 +316,13 @@ abstract class Controller {
 
         $ctrlName = str_replace(' ', '', ucwords(str_replace('-', ' ', $sCtrl))).'Controller';
         Debug::show($ctrlName, 'ctrl in actionForward()');
-        if (file_exists(CTRL_DIR.DS.$ctrlName.'.php')) {
-            require_once CTRL_DIR.DS.$ctrlName.'.php';
-            $oCtrl = new $ctrlName;
+
+        $ctrlFile = CTRL_DIR.'/'.$ctrlName.'.php';
+
+        if (file_exists($ctrlFile)) {
+            require_once $ctrlFile;
+            $ctrl = "Renaissance\\Controller\\$ctrlName";
+            $oCtrl = new $ctrl;
 
             $oCtrl->setCtrlName($sCtrl);
             $oCtrl->setActionName($sAction);
@@ -354,12 +358,20 @@ abstract class Controller {
                 $ctrlName = str_replace(' ', '', ucwords(str_replace('-', ' ', $sCtrl)));
                 $actionName = str_replace(' ', '', ucwords(str_replace('-', ' ', $sAction)));
                 $viewName = $ctrlName.$actionName.'View';
+                $viewFile = VIEW_DIR.'/'.$viewName.'.php';
                 Debug::show($viewName, 'view in actionForward()');
-                if (file_exists(VIEW_DIR.DS.$viewName.'.php')) {
-                    require_once VIEW_DIR.DS.$viewName.'.php';
-                    $oCtrl->_view = new $viewName($this->_renderer);
+                if (file_exists($viewFile)) {
+                    require_once $viewFile;
+                    $view = "Renaissance\\View\\$viewName";
+                    $oCtrl->_view = new $view($this->_renderer);
                     
-                    $oCtrl->_view->run();
+                    try {
+                        $oCtrl->_view->run();
+                    } catch (MissingEntityException $e) {
+                        $oCtrl->setTemplateName('404');
+                        Logger::logStandardRequest('404');
+                        // $this->_renderer->assign('content', '404');
+                    }
                 }
             
                 $oCtrl->runAfterMethod();

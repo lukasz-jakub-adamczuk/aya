@@ -4,7 +4,7 @@ namespace Aya\Core;
 
 class Dao {
     
-    public static function entity($name = null, $mIdentifier = 0) {
+    public static function entity($name = null, $identifier = 0) {
         $name = strtolower($name) === $name ? str_replace(' ', '', ucwords(str_replace('-', ' ', $name))) : $name;
         if (file_exists(DAO_DIR.'/Entity/'.$name.'Entity.php')) {
             require_once DAO_DIR.'/Entity/'.$name.'Entity.php';
@@ -17,15 +17,15 @@ class Dao {
         }
         if ($name) {
             if (strpos($name, '-') !== false) {
-                $sIdLabel = strtolower(str_replace('-', '_', $name));
+                $idLabel = strtolower(str_replace('-', '_', $name));
             } else {
-                $sIdLabel = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $name));
+                $idLabel = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $name));
             }
         }
-        if (isset($sIdLabel)) {
-            return new $sEntity($mIdentifier, $sIdLabel);
+        if (isset($idLabel)) {
+            return new $sEntity($identifier, $idLabel);
         } else {
-            return new $sEntity($mIdentifier);
+            return new $sEntity($identifier);
         }
     }
     
