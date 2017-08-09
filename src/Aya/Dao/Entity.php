@@ -20,7 +20,7 @@ class Entity {
     protected $_db;
     
     // values in db
-    protected $_aDbFields = array();
+    protected $_aDbFields = [];
     
     // protected $_bModified;
 
@@ -33,26 +33,26 @@ class Entity {
 
     protected $_sWhere;
     
-    public function __construct($mIdentifier = 0, $sIdLabel = null) {
-        // $this->_sTable = strtolower(get_class($this)) == 'entity' ? $sIdLabel : null;
-        $this->_sTable = $sIdLabel;
+    public function __construct($identifier = 0, $idLabel = null) {
+        // $this->_sTable = strtolower(get_class($this)) == 'entity' ? $idLabel : null;
+        $this->_sTable = $idLabel;
         $this->_db = Db::getInstance();
 
         // echo $this->_sTable;
 
-        $this->_mId = $mIdentifier;
-        if (is_numeric($mIdentifier)) {
+        $this->_mId = $identifier;
+        if (is_numeric($identifier)) {
             $this->_sIdLabel = 'id_'.$this->_sTable;
-            if ($mIdentifier > 0) {
+            if ($identifier > 0) {
                 $this->load();
             }
         }
-        if ($sIdLabel) {
-            $this->_sIdLabel = $sIdLabel;
+        if ($idLabel) {
+            $this->_sIdLabel = $idLabel;
         }
     }
     
-    // protected function _getShortClasname($sMode = null) {
+    // protected function _getShortClassName($sMode = null) {
     //     if ($sMode == 'lowercase') {
     //         return strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', str_replace('Entity', '', get_class($this))));
     //     } else {
@@ -121,6 +121,10 @@ class Entity {
         if ($bReturnObjectId) {
             return array_merge($this->_aDbFields, array('id' => $this->_mId));
         }
+        // if entity created with query identifier is 0;
+        if (!$this->_mId && isset($this->_aDbFields['id_'.$this->_sIdLabel.''])) {
+            $this->_mId = $this->_aDbFields['id_'.$this->_sIdLabel.''];
+        }
         if (empty($this->_aDbFields)) {
             throw new MissingEntityException();
         }
@@ -167,6 +171,15 @@ class Entity {
     public function unsetField($sField) {
         if (isset($this->_aQueryFields[$sField])) {
             unset($this->_aQueryFields[$sField]);
+        }
+    }
+
+    public function increaseField($field) {
+        $sql = 'UPDATE '.$this->_sTable.' SET `'.$field.'` = `'.$field.'` + 1 WHERE id_'.$this->_sIdLabel.'="'.$this->_mId.'"';
+        $this->_sQuery = $sql;
+        
+        if ($this->_db->execute($this->_sQuery)) {
+            return true;
         }
     }
 

@@ -4,11 +4,11 @@ namespace Aya\Helper;
 
 class Time {
 
-    private static $_aStartTime = array();
+    private static $_aStartTime = [];
 
-    private static $_aStopTime = array();
+    private static $_aStopTime = [];
 
-    private static $_aTotalTime = array();
+    private static $_aTotalTime = [];
 
     public static function start($sKey = null) {
         if ($sKey) {
@@ -48,7 +48,7 @@ class Time {
         if (empty(self::$_aTotalTime)) {
             self::total();
         }
-        $aStats = array();
+        $aStats = [];
         foreach (self::$_aTotalTime as $tk => $time) {
             if ($time > $iThreshold) {
                 $aStats[$tk] = $time;

@@ -4,7 +4,7 @@ namespace Aya\Helper;
 
 class Breadcrumbs {
 
-    static private $_aValues = array();
+    static private $_aValues = [];
 
     static public function add($aItem) {
         if (isset($aItem['name'])) {

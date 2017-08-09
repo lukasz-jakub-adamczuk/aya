@@ -114,7 +114,7 @@ class IndexView extends View {
         Time::start('sql-collection');
 
         // index collection
-        $aParams = array();
+        $aParams = [];
         $aParams['search'] = $this->_getSearchFields();
 
         Debug::show(Navigator::getOwner(), 'nav owner is set');
