@@ -5,7 +5,7 @@ namespace Aya\Dao;
 use Aya\Core\Db;
 use Aya\Core\Debug;
 
-require_once AYA_DIR.'/Core/Paginator.php';
+use Aya\Dao\Paginator;
 
 class Collection {
 
