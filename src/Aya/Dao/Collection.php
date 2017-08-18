@@ -4,7 +4,7 @@ namespace Aya\Dao;
 
 use Aya\Core\Db;
 use Aya\Core\Debug;
-
+use Aya\Core\Navigator;
 use Aya\Dao\Paginator;
 
 class Collection {

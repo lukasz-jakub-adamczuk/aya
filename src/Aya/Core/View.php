@@ -16,7 +16,8 @@ abstract class View {
     
     
     public function __construct($renderer) {
-        $this->_sViewName = str_replace('View', '', get_class($this));
+        $parts = explode('\\', get_class($this));
+        $this->_sViewName = str_replace('View', '', array_pop($parts));
         $aExplodedViewName = explode('_', preg_replace('/([a-z])([A-Z0-9])/', "$1_$2", $this->_sViewName));
         $this->_sActionName = array_pop($aExplodedViewName);
         $this->_sDaoName = implode('', $aExplodedViewName);

@@ -4,7 +4,6 @@ namespace Aya\Core;
 
 use Aya\Core\Debug;
 use Aya\Helper\ValueMapper;
-// use Renaissance\Controller as Controller;
 
 class Router {
 
@@ -53,23 +52,17 @@ class Router {
 
         $controllerFile = CTRL_DIR.'/'.$sControllerName.'.php';
         
-        if (file_exists($controllerFile)) {
+        // try {
             require_once $controllerFile;
-            $ctrl = "Renaissance\\Controller\\$sControllerName";
+            $ctrl = APP_NS."\\Controller\\$sControllerName";
             $oController = new $ctrl;
             // $oController = new Renaissance\Controller\{$sControllerName};
             
             $oController->setCtrlName($sController);
             $oController->setActionName($sAction);
-        } else {
-            if (file_exists(CTRL_DIR.'/ErrorController.php')) {
-                require_once CTRL_DIR.'/ErrorController.php';
-            } else {
-                // require_once AYA_DIR.'/Core/ErrorController.php';
-                require_once AYA_DIR.'/src/Aya/Core/ErrorController.php';
-            }
-            $oController = new ErrorController;
-        }
+        // } catch (MissingControllerException $e) {
+            // what else
+        // }
 
         $oController->run();
 

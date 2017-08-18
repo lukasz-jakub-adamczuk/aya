@@ -126,7 +126,7 @@ class Entity {
             $this->_mId = $this->_aDbFields['id_'.$this->_sIdLabel.''];
         }
         if (empty($this->_aDbFields)) {
-            throw new MissingEntityException();
+            // throw new MissingEntityException();
         }
         return $this->_aDbFields;
     }

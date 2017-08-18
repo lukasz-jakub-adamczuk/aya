@@ -2,7 +2,6 @@
 
 namespace Aya\Core;
 
-// common container for User info
 class User {
 
     protected static $_instance;

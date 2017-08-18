@@ -18,8 +18,6 @@ abstract class Controller {
 
     protected $_contentType;
 
-    protected $_params;
-
     protected $_ctrlName;
     
     protected $_actionName;
@@ -55,11 +53,7 @@ abstract class Controller {
     }
     
     public function setTemplateName($templateName) {
-        // if (file_exists(TPL_DIR.THEME_DIR.DS.$templateName.'.tpl')) {
-            $this->_templateName = $templateName;
-        // } else {
-        //  $this->_templateName = '404';
-        // }
+        $this->_templateName = $templateName;
     }
     
     public function setView(View $view) {
@@ -67,7 +61,6 @@ abstract class Controller {
     }
 
     // getters
-
     public function getContentType() {
         return $this->_contentType;
     }
@@ -89,21 +82,15 @@ abstract class Controller {
     }
 
     public function run() {
-        // methods executed inside
-        // init()
-        // _afterInit()
         Debug::show('flow begins...');
 
         Time::start('controller');
 
         $this->_contentType = 'html';
 
-        // DB params serialized in constant
-        $this->_params = unserialize(DB_SOURCE);
-
         Time::start('db-init');
         // DB handle
-        $this->_db = Db::getInstance($this->_params);
+        $this->_db = Db::getInstance(unserialize(DB_SOURCE));
         Time::stop('db-init');
 
         // session init
@@ -112,19 +99,10 @@ abstract class Controller {
         // create container
         User::instance();
 
-        // session_unset($_SESSION['user']);
-        
         // template engine
         require_once TPL_ENGINE_DIR.'/libs/Smarty.class.php';
-        
-        // require_once TPL_ENGINE_DIR.'/libs/Autoloader.php';
-        // Smarty_Autoloader::register();
 
         $this->_renderer = new Smarty;
-
-        // $this->_renderer->caching = 2;
-        // $this->_renderer->cache_lifetime = 60;
-        // $this->_renderer->compile_check = false;
 
         Debug::show(TPL_DIR.THEME_DIR, 'template_dir');
         Debug::show(TPL_C_DIR.THEME_DIR, 'template_c_dir');
@@ -133,9 +111,7 @@ abstract class Controller {
         $this->_renderer->setCompileDir(TPL_C_DIR.THEME_DIR);
         $this->_renderer->setConfigDir(APP_DIR.'/configs');
         // $this->_renderer->setCacheDir(APP_DIR.'/cache');
-        // $this->setCacheDir(GUESTBOOK_DIR . 'cache');
         Time::stop('smarty-init');
-
         
         Time::start('ctrl-init');
         $this->init();
@@ -145,47 +121,28 @@ abstract class Controller {
         
         Time::stop('ctrl-init');
 
-        // Debug::show($this->_templateName, 'template before auth()');
-
-        Panel::setVar('ctrl', $this->getCtrlName());
-        Panel::setVar('act', $this->getActionName());
-
-        Debug::show($this->getCtrlName(), 'ctrl sent to templates in ctrl');
-        Debug::show($this->getActionName(), 'ctrl sent to templates in ctrl');
         $this->_renderer->assign('ctrl', $this->getCtrlName());
         $this->_renderer->assign('act', $this->getActionName());
-
         
-
-
-        // TODO find better way to transform
-        $actionName = ucwords(str_replace('-', ' ', $this->_actionName));
-
-        $aParts = explode(' ', $actionName);
-        $aParts[0] = strtolower($aParts[0]);
-
-        $actionName = implode('', $aParts);
-
-
-        $methodName = $actionName.'Action';
-
-        // echo $methodName;
+        Panel::setVar('ctrl', $this->getCtrlName());
+        Panel::setVar('act', $this->getActionName());
+        Debug::show($this->getCtrlName(), 'ctrl name sent to templates in ctrl');
+        Debug::show($this->getActionName(), 'act name sent to templates in ctrl');
+        
         $sCacheString = CACHE_DIR . '/html'.str_replace($_SERVER['HTTP_HOST'], '', $_SERVER['REQUEST_URI']).'/index.html';
-        // print_r($_SERVER);
-        // echo BASE_URL;
         if (CACHE_OUTPUT && file_exists($sCacheString)) {
             $this->_renderer->display($sCacheString);
-            // echo file_get_contents($sCacheString);
         } else {
+            $this->beforeAction();
+
+            $action = Text::toPascalCase($this->_actionName).'Action';
+
             // controller action
-            if (method_exists($this, $methodName)) {
-                $this->runBeforeMethod();
+            if (method_exists($this, $action)) {
+                
 
-                // Debug::show($this->getTemplateName(), 'tpl name in ctrl');
-                $this->$methodName();
-                // Debug::show($this->getTemplateName(), 'tpl name in ctrl');
-                Time::stop('ctrl-method');
-
+                $this->$action();
+                Time::stop('ctrl-action');
 
                 Panel::setVar('view', $this->getViewName());
 
@@ -195,7 +152,7 @@ abstract class Controller {
                 
                 if (file_exists($viewFile)) {
                     require_once $viewFile;
-                    $view = "Renaissance\\View\\$viewName";
+                    $view = APP_NS."\\View\\$viewName";
 
                     $this->_view = new $view($this->_renderer);
                     
@@ -207,20 +164,11 @@ abstract class Controller {
                         // $this->_renderer->assign('content', '404');
                     }
                 }
-                $this->runAfterMethod();
-
-                // $this->_renderer->assign('ctrl', $this->getCtrlName());
-                // $this->_renderer->assign('act', $this->getActionName());
-            } else {
-                $this->runAfterMethod();
-
-                // 404 // Method not found
-                $this->_renderer->assign('content', '404');
             }
-            Time::stop('ctrl-action');
 
-            // $this->_renderer->assign('ctrl', $this->_ctrlName);
-            // $this->_renderer->assign('act', $this->_actionName);
+            $this->afterAction();
+
+            Time::stop('ctrl-action');
 
             Debug::show('flow ends...');
 
@@ -241,15 +189,12 @@ abstract class Controller {
 
             $this->_renderer->assign('debugPanel', Panel::info());
 
-            // print_r(Debug::getLogs());
-
             if ($this->_contentType != 'html') {
                 $output = $this->_renderer->fetch('layout.'.$this->_contentType.'.tpl');
             } else {
                 $output = $this->_renderer->fetch('layout.tpl');
             }
-            echo $output;
-
+            
             if (CACHE_OUTPUT) {
                 $sCacheDir = dirname($sCacheString);
                 if (!file_exists($sCacheDir)) {
@@ -257,20 +202,15 @@ abstract class Controller {
                 }
                 file_put_contents($sCacheString, $output);
             }
+            
+            echo $output;
         }
     }
 
     public function init() {
-        // $this->setViewName($this->getName('ctrl').$this->getName('action'));
-        // echo $this->getCtrlName();
-        // echo $this->getActionName();
         $this->setViewName(Text::toPascalCase($this->getCtrlName().' '.$this->getActionName()));
 
-        // echo $this->getViewName();
-
         Debug::show($this->getViewName(), 'view name in init');
-
-        
 
         // try '<ctrl_name>-<action_name>.tpl'
         $templateName = $this->getCtrlName().'-'.Text::toLowerCase($this->getActionName());
@@ -288,12 +228,18 @@ abstract class Controller {
         $this->setTemplateName($templateName);
 
         Panel::setVar('tpl', $this->getTemplateName());
-
-        
     }
 
     protected function _afterInit() {
-        // Debug::show($this->getTemplateName(), 'tpl name in ctrl');
+        // auth or not ?
+		if (AUTH_MODE) {
+			// if (isset($_SESSION['user'])) {
+			if (User::set()) {
+				$this->actionForward('index', 'auth');
+			} else {
+				$this->actionForward('index', 'auth', true);
+			}
+		}
     }
 
     // TODO clean... maybe refactor
@@ -321,7 +267,7 @@ abstract class Controller {
 
         if (file_exists($ctrlFile)) {
             require_once $ctrlFile;
-            $ctrl = "Renaissance\\Controller\\$ctrlName";
+            $ctrl = APP_NS."\\Controller\\$ctrlName";
             $oCtrl = new $ctrl;
 
             $oCtrl->setCtrlName($sCtrl);
@@ -339,7 +285,7 @@ abstract class Controller {
             Debug::show($oCtrl->getTemplateName(), 'template in actionForward() $oCtrl ctrl');
             Debug::show(array('ctrl' => $ctrlName, 'method' => $methodName), 'ctrl and method in actionForward()');
             if (method_exists($oCtrl, $methodName)) {
-                $oCtrl->runBeforeMethod();
+                $oCtrl->beforeAction();
 
                 // action method in ctrl
                 $oCtrl->$methodName();
@@ -362,7 +308,7 @@ abstract class Controller {
                 Debug::show($viewName, 'view in actionForward()');
                 if (file_exists($viewFile)) {
                     require_once $viewFile;
-                    $view = "Renaissance\\View\\$viewName";
+                    $view = APP_NS."\\View\\$viewName";
                     $oCtrl->_view = new $view($this->_renderer);
                     
                     try {
@@ -374,17 +320,19 @@ abstract class Controller {
                     }
                 }
             
-                $oCtrl->runAfterMethod();
+                $oCtrl->afterAction();
             }
         }
         if ($bDieAfterForward) {
             die();
         }
     }
+
+    public function beforeAction() {}
     
-    public function runAfterMethod() {
+    public function afterAction() {
         // defining template name
-        Debug::show($this->_templateName, 'runAfterMethod() in ' . $this->getCtrlName() . ' ctrl');
+        Debug::show($this->_templateName, 'afterAction() in ' . $this->getCtrlName() . ' ctrl');
         if ($this->_templateName) {
             $this->_renderer->assign('content', $this->_templateName);
         } else {
