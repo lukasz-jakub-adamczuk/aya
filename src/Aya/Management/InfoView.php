@@ -4,8 +4,8 @@ namespace Aya\Management;
 
 use Aya\Core\Dao;
 use Aya\Core\Debug;
+use Aya\Core\Navigator;
 use Aya\Core\View;
-// require_once AYA_DIR.'/Html/Form/HtmlForm.php';
 
 class InfoView extends View {
 

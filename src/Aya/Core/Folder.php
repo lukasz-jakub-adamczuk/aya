@@ -10,6 +10,24 @@ class Folder {
         }
     }
 
+    public static function makeDirectory($basePath, $fragmentPath) {
+        $completePath = $basePath . $fragmentPath;
+        // create directory if does not exists
+        if (!file_exists($completePath)) {
+            if (mkdir($completePath, 0755, true)) {
+                // make each directory is writable
+                $parts = explode('/', $fragmentPath);
+                $tmpPath = $basePath;
+                foreach ($parts as $dir) {
+                    if ($dir) {
+                        $tmpPath .= '/' . $dir;
+                    }
+                    chmod($tmpPath, 0755);	
+                }
+            }
+        }
+    }
+
     private static function _getDirectoryContent($path, $finfo = false, $aExclude = []) {
         // use finfo for files
         if ($finfo && function_exists('finfo_open')) {

@@ -48,16 +48,6 @@ class FrontController extends Controller {
 	public function afterAction() {
 		parent::afterAction();
 
-		if (User::set()) {
-			$this->_renderer->assign('user', User::get());
-		}
-
-		$this->_renderer->assign('aBreadcrumbs', Breadcrumbs::get());
 		
-		// vars in templates
-		$this->_renderer->assign('base', BASE_URL);
-		if (defined('SITE_URL')) {
-			$this->_renderer->assign('site', SITE_URL);
-		}
 	}
 }

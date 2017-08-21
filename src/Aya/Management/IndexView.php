@@ -260,17 +260,17 @@ class IndexView extends View {
         $oPaginator = new Paginator($this->_oCollection->getNavigator());
         
         // if theme bootstrap
-        if (THEME_NAME == 'bootstrap') {
-            $aOptions = array(
-                'outer-wrapper' => 'nav',
-                // 'outer-wrapper-class' => null,
-                // 'inner-wrapper' => 'ul',
-                'inner-wrapper-class' => 'pagination',
-                'active-element' => 'li',
-                // 'active-element-class' => 'active'
-            );
-            $oPaginator->setOptions($aOptions);
-        }
+        // if (THEME_NAME == 'bootstrap') {
+        //     $aOptions = array(
+        //         'outer-wrapper' => 'nav',
+        //         // 'outer-wrapper-class' => null,
+        //         // 'inner-wrapper' => 'ul',
+        //         'inner-wrapper-class' => 'pagination',
+        //         'active-element' => 'li',
+        //         // 'active-element-class' => 'active'
+        //     );
+        //     $oPaginator->setOptions($aOptions);
+        // }
 
         $sPaginator = $oPaginator->configure('archive', BASE_URL.'/'.$_GET['ctrl'])->generate();
         $this->_renderer->assign('sPaginator', $sPaginator);

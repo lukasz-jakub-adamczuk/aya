@@ -1,65 +1,69 @@
 <?php
-// require_once AYA_DIR.'/Management/FrontController.php';
 
-class CrudController extends FrontController {
+namespace Aya\Management;
+
+use Aya\Core\Controller;
+use Aya\Core\Dao;
+use Aya\Helper\ChangeLog;
+use Aya\Helper\Lock;
+use Aya\Helper\MessageList;
+use Aya\Helper\Text;
+
+class CrudController extends Controller {
     
     public function indexAction() {
-        // lock handling
-        if (isset($_SESSION['user'])) {
-            if (isset($_SESSION['user']['lock'])) {
-                if (Lock::exists($_SESSION['user']['lock']['name'], (int)$_SESSION['user']['lock']['id'])) {
-                    Lock::release($_SESSION['user']['lock']['name'], (int)$_SESSION['user']['lock']['id']);
-                }
-            }
-        }
+		// lock handling
+		if (isset($_SESSION['user'])) {
+			if (isset($_SESSION['user']['lock'])) {
+				if (Lock::exists($_SESSION['user']['lock']['name'], (int)$_SESSION['user']['lock']['id'])) {
+					Lock::release($_SESSION['user']['lock']['name'], (int)$_SESSION['user']['lock']['id']);
+				}
+			}
+		}
 
-        // decide what to do with action
-        if (isset($_POST['action'])) {
-            $sAction = key($_POST['action']).'Action';
-            // unset($_POST['action']);
+		// decide what to do with action
+		if (isset($_POST['action'])) {
+			$sAction = key($_POST['action']).'Action';
 
-            // Debug::show('mass action...');
-            // echo 'mass action';
-
-            if (isset($_POST['ids'])) {
-                $this->$sAction();
-            }
-        }
-    }
+			// if (isset($_POST['ids'])) {
+				$this->$sAction();
+			// }
+		}
+	}
     
     public function infoAction() {
         // lock handling
         if (isset($_SESSION['user'])) {
-            if (Lock::exists($this->_sCtrlName, (int)$_GET['id'])) {
-                $sLock = Lock::get($this->_sCtrlName, (int)$_GET['id']);
+            if (Lock::exists($this->_ctrlName, (int)$_GET['id'])) {
+                $sLock = Lock::get($this->_ctrlName, (int)$_GET['id']);
                 $aLockParts = explode(':', $sLock);
                 if ($aLockParts[0] != $_SESSION['user']['id']) {
                     $this->_renderer->assign('aLock', array('id' => $aLockParts[0], 'name' => $aLockParts[1]));
                 }
             } else {
-                Lock::set($this->_sCtrlName, (int)$_GET['id'], $_SESSION['user']);
-                $_SESSION['user']['lock'] = array('name' => $this->_sCtrlName, 'id' => $_GET['id']);
+                Lock::set($this->_ctrlName, (int)$_GET['id'], $_SESSION['user']);
+                $_SESSION['user']['lock'] = array('name' => $this->_ctrlName, 'id' => $_GET['id']);
                 // Session::set('user.locks', array())
             }
         }
-        // $_SESSION['user']['lock'] = array('name' => $this->_sCtrlName, 'id' => $_GET['id']);
+        // $_SESSION['user']['lock'] = array('name' => $this->_ctrlName, 'id' => $_GET['id']);
     }
     
     public function addAction() {
-        if ($this->_renderer->templateExists($this->_sCtrlName.'-info.tpl')) {
-            $this->setTemplateName($this->_sCtrlName.'-info');
+        if ($this->_renderer->templateExists($this->_ctrlName.'-info.tpl')) {
+            $this->setTemplateName($this->_ctrlName.'-info');
         } else {
             $this->setTemplateName('all-info');
         }
-        $this->setViewName(str_replace(' ', '', ucwords(str_replace('-', ' ', $this->_sCtrlName.'-info'))));
+        $this->setViewName(str_replace(' ', '', ucwords(str_replace('-', ' ', $this->_ctrlName.'-info'))));
     }
     
     public function insertAction() {
         $mId = 0;
 
-        $aPost = $this->preInsert();
+        $aPost = $this->beforeInsert();
 
-        $oEntity = Dao::entity($this->_sCtrlName, $mId);
+        $oEntity = Dao::entity($this->_ctrlName, $mId);
         
         $oEntity->setFields($aPost['dataset']);
 
@@ -73,9 +77,9 @@ class CrudController extends FrontController {
         // print_r($aPost['dataset']);
 
         // slug by used name if empty or changed name
-        if (isset($sName) && isset($aPost['dataset']['slug']) && (empty($aPost['dataset']['slug']) || $aPost['dataset']['slug'] != $this->slugify($sName))) {
-            $oEntity->setField('slug', $this->slugify($sName));
-        }
+		if (isset($sName) && isset($aPost['dataset']['slug']) && (empty($aPost['dataset']['slug']) || $aPost['dataset']['slug'] != Text::slugify($sName))) {
+			$oEntity->setField('slug', Text::slugify($sName));
+		}
 
         // no creation date
         // TODO or creation date invalid
@@ -88,39 +92,43 @@ class CrudController extends FrontController {
         }
         
         if ($mId = $oEntity->insert(true)) {
-            $this->postInsert($mId);
+            $this->afterInsert($mId);
             // clear cache
-            $sSqlCacheFile = TMP_DIR . '/sql/collection/'.$this->_sCtrlName.'-'.$this->_sActionName.'';
+            $sSqlCacheFile = CACHE_DIR . '/sql/collection/'.$this->_ctrlName.'-'.$this->_sActionName.'';
 
             $this->raiseInfo('Wpis '.(isset($sName) ? '<strong>'.$sName.'</strong>' : '').' został utworzony.');
 
-            $this->addHistoryLog('create', $this->_sCtrlName, $mId);
+            ChangeLog::add('create', $this->_ctrlName, $mId);
+
+            // $this->addHistoryLog('create', $this->_ctrlName, $mId);
 
             // $aStreamItem = $this->prepareStreamItem($mId, $aPost);
             // $this->addToStream($aStreamItem);
 
-            $this->actionForward('index', $this->_sCtrlName, true);
+            $this->actionForward('index', $this->_ctrlName, true);
         } else {
             $this->raiseError('Wystąpił nieoczekiwany wyjątek.');
-            $this->actionForward('info', $this->_sCtrlName);
+            $this->actionForward('info', $this->_ctrlName);
         }
     }
     
     public function updateAction() {
         // lock handling
-        if (Lock::exists($this->_sCtrlName, (int)$_GET['id'])) {
-            $sLock = Lock::get($this->_sCtrlName, (int)$_GET['id']);
+        if (Lock::exists($this->_ctrlName, (int)$_GET['id'])) {
+            $sLock = Lock::get($this->_ctrlName, (int)$_GET['id']);
             $aLockParts = explode(':', $sLock);
             if ($aLockParts[0] != $_SESSION['user']['id']) {
                 $this->_renderer->assign('aLock', array('id' => $aLockParts[0], 'name' => $aLockParts[1]));
             }
         } else {
-            Lock::set($this->_sCtrlName, (int)$_GET['id'], $_SESSION['user']);
+            Lock::set($this->_ctrlName, (int)$_GET['id'], $_SESSION['user']);
         }
+
+        $mButton = isset($_POST['button']) ? $_POST['button']: null;
 
         $mId = isset($_POST['id']) ? $_POST['id'] : 0;
         
-        $oEntity = Dao::entity($this->_sCtrlName, $mId, 'id_'.$this->_sCtrlName);
+        $oEntity = Dao::entity($this->_ctrlName, $mId, 'id_'.$this->_ctrlName);
         
         $oEntity->setFields($_POST['dataset']);
 
@@ -132,12 +140,10 @@ class CrudController extends FrontController {
             }
         }
 
-        // print_r($_POST['dataset']);
-
         // slug by used name if empty or changed name
-        if (isset($_POST['dataset']['slug']) && (empty($_POST['dataset']['slug']) || $_POST['dataset']['slug'] != $this->slugify($sName))) {
-            $oEntity->setField('slug', $this->slugify($sName));
-        }
+		if (isset($_POST['dataset']['slug']) && (empty($_POST['dataset']['slug']) || $_POST['dataset']['slug'] != Text::slugify($sName))) {
+			$oEntity->setField('slug', Text::slugify($sName));
+		}
 
         if (isset($_POST['dataset']['modification_date'])) {
             if ($_POST['dataset']['modification_date'] == '') {
@@ -145,42 +151,41 @@ class CrudController extends FrontController {
             }
         }
 
-        $sConvertSqlFile = TMP_DIR.'/files.sql';
-        // $sConvertSql = TMP_DIR.'/texts';
-        $sConvertSql = TMP_DIR.'/casperjs';
-        // if (!file_exists($sConvertSql)) {
-        //  mkdir($sConvertSql, 0777, true);
-        // }
-
-        // file_put_contents($sConvertSqlFile, $oEntity->getQuery().';'."\n\n");
-        // echo $oEntity->getQuery();
+        // depending on button pressed
+		if ($mButton == 'publish') {
+			$oEntity->setField('visible', 1);
+		}
+		// if ($mButton == 'unpublish') {
+		// 	$oEntity->setField('visible', 0);
+		// }
+		if ($mButton == 'delete') {
+			$oEntity->setField('deleted', 1);
+		}
+		if ($mButton == 'undelete') {
+			$oEntity->setField('deleted', 0);
+		}
         
         if ($oEntity->update()) {
-            // $this->postUpdate($mId);
-
-            // echo $oEntity->getQuery();
-
-            // file_put_contents($sConvertSqlFile, $oEntity->getQuery().';'."\n\n", FILE_APPEND | LOCK_EX);
-            // file_put_contents($sConvertSql.'/'.$this->_sCtrlName.'-'.$mId.'.sql', $oEntity->getQuery().';'."\n\n");
-
-            $sEditUrl = BASE_URL.'/'.$this->_sCtrlName.'/'.$mId;
+            $sEditUrl = BASE_URL.'/'.$this->_ctrlName.'/'.$mId;
             if (isset($sName)) {
                 $this->raiseInfo('Wpis '.(isset($sName) ? '<strong>'.$sName.'</strong>' : '').' został zmieniony. <a href="'.$sEditUrl.'">Edytuj</a> ponownie.');
             } else {
                 $this->raiseInfo('Wpis został zmieniony. <a href="'.$sEditUrl.'">Edytuj</a> ponownie.');
             }
 
-            $this->addHistoryLog('update', $this->_sCtrlName, $mId);
+            // $this->addHistoryLog('update', $this->_ctrlName, $mId);
 
             // $aStreamItem = $this->prepareStreamItem($mId, $_POST);
             // $this->addToStream($aStreamItem);
 
-            $this->postUpdate($mId);
+            ChangeLog::add('update', $this->_ctrlName, $mId);
+
+            $this->afterUpdate($mId);
             
-            $this->actionForward('index', $this->_sCtrlName, true);
+            $this->actionForward('index', $this->_ctrlName, true);
         } else {
             $this->raiseError('Wystąpił nieoczekiwany wyjątek.');
-            $this->actionForward('info', $this->_sCtrlName);
+            $this->actionForward('info', $this->_ctrlName);
         }
     }
 
@@ -195,7 +200,7 @@ class CrudController extends FrontController {
         if (isset($aIds)) {
             $aNames = array();
             foreach ($aIds as $id) {
-                $oEntity = Dao::entity($this->_sCtrlName, $id, 'id_'.$this->_sCtrlName);
+                $oEntity = Dao::entity($this->_ctrlName, $id, 'id_'.$this->_ctrlName);
 
                 $aPossibleNameKeys = array('title', 'name');
                 foreach ($aPossibleNameKeys as $key) {
@@ -207,10 +212,15 @@ class CrudController extends FrontController {
                 }
 
                 $oEntity->setField('deleted', '1');
+
+                $this->beforeDelete($sName);
                 
                 if ($oEntity->update()) {
-                    $this->addHistoryLog('delete', $this->_sCtrlName, $id);
+                    // $this->addHistoryLog('delete', $this->_ctrlName, $id);
+                    ChangeLog::add('update', $this->_ctrlName, $id);
                     $aNames[] = $sName;
+
+                    $this->afterDelete($sName);
                 }
             }
 
@@ -222,7 +232,11 @@ class CrudController extends FrontController {
             } else {
                 $this->raiseError('Wystąpił nieoczekiwany wyjątek.');
             }
-            // $this->actionForward('index', $this->_sCtrlName, true);
+
+			// prevent endless loop
+			if (!isset($_POST['ids'])) {
+				$this->actionForward('index', $this->_ctrlName, true);
+			}
         }
     }
 
@@ -237,7 +251,7 @@ class CrudController extends FrontController {
         if (isset($aIds)) {
             $aNames = array();
             foreach ($aIds as $id) {
-                $oEntity = Dao::entity($this->_sCtrlName, $id, 'id_'.$this->_sCtrlName);
+                $oEntity = Dao::entity($this->_ctrlName, $id, 'id_'.$this->_ctrlName);
 
                 $aPossibleNameKeys = array('title', 'name');
                 foreach ($aPossibleNameKeys as $key) {
@@ -247,10 +261,14 @@ class CrudController extends FrontController {
                         $sName = $id;
                     }
                 }
+                $this->beforeRemove($sName);
                 
                 if ($oEntity->delete()) {
-                    $this->addHistoryLog('remove', $this->_sCtrlName, $id);
+                    // $this->addHistoryLog('remove', $this->_ctrlName, $id);
+                    ChangeLog::add('delete', $this->_ctrlName, $id);
                     $aNames[] = $sName;
+
+                    $this->afterRemove($sName);
                 }
             }
 
@@ -262,21 +280,32 @@ class CrudController extends FrontController {
             } else {
                 $this->raiseError('Wystąpił nieoczekiwany wyjątek.');
             }
-            // $this->actionForward('index', $this->_sCtrlName, true);
+
+			// prevent endless loop
+			if (!isset($_POST['ids'])) {
+				$this->actionForward('index', $this->_ctrlName, true);
+			}
         }
     }
 
     // action hooks
-
-    public function preInsert() {
+    public function beforeInsert() {
         return $_POST;
     }
 
-    public function postInsert($mId) {}
+    public function afterInsert($mId) {}
 
-    public function preUpdate() {}
+    public function beforeUpdate() {}
 
-    public function postUpdate($mId) {}
+    public function afterUpdate($mId) {}
+
+    public function beforeDelete($sName) {}
+
+	public function afterDelete($sName) {}
+
+    public function beforeRemove($sName) {}
+
+	public function afterRemove($sName) {}
 
     public function fetchTemplateAction() {
         $sPath = isset($_GET['path']) ? str_replace(',', '/', strip_tags($_GET['path'])) : null;
@@ -288,29 +317,12 @@ class CrudController extends FrontController {
         }
     }
 
-    // additional common tasks 
-
-    public function addHistoryLog($sActionType, $sTableName, $mId, $sLog = '') {
-        $oEntity = Dao::entity('change_log');
-
-        $sUser = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : 0;
-
-        $oEntity->setField('id_author', $sUser);
-        $oEntity->setField('id_record', $mId);
-        $oEntity->setField('table', $sTableName);
-        $oEntity->setField('log', $sLog);
-        $oEntity->setField('creation_date', date('Y-m-d H:i:s'));
-        $oEntity->setField('type', $sActionType);
-
-        $oEntity->insert();
-    }
-
     // private methods
-
     protected function _changeStatusField($sField, $mValue) {
+        // TODO validate
         $mId = $_GET['id'];
         
-        $oEntity = Dao::entity($this->_sCtrlName, $mId, 'id_'.$this->_sCtrlName);
+        $oEntity = Dao::entity($this->_ctrlName, $mId, 'id_'.$this->_ctrlName);
         
         $oEntity->setField($sField, $mValue);
 
@@ -322,50 +334,31 @@ class CrudController extends FrontController {
                 break;
             }
         }
+
+        // $this->beforeChange($mId);
+        // print_r($oEntity);
+        // echo '.....................';
+        // echo $oEntity->getQuery();
         
         if ($oEntity->update()) {
-            // $this->postUpdate($mId);
+            // $this->afterUpdate($mId);
 
-            $sEditUrl = BASE_URL.'/'.$this->_sCtrlName.'/'.$mId;
+            $sEditUrl = BASE_URL.'/'.$this->_ctrlName.'/'.$mId;
             if (isset($sName)) {
                 $this->raiseInfo('Wpis '.(isset($sName) ? '<strong>'.$sName.'</strong>' : '').' został zmieniony. <a href="'.$sEditUrl.'">Edytuj</a> ponownie.');
             } else {
                 $this->raiseInfo('Wpis został zmieniony. <a href="'.$sEditUrl.'">Edytuj</a> ponownie.');
             }
 
-            $this->addHistoryLog('change', $this->_sCtrlName, $mId);
+            ChangeLog::add('update', $this->_ctrlName, $mId);
 
-            $this->postUpdate($mId);
+            // $this->afterChange($mId);
             
-            $this->actionForward('index', $this->_sCtrlName, true);
+            $this->actionForward('index', $this->_ctrlName, true);
         } else {
             $this->raiseError('Wystąpił nieoczekiwany wyjątek.');
-            $this->actionForward('info', $this->_sCtrlName);
+            $this->actionForward('info', $this->_ctrlName);
         }
-    }
-
-    
-    private function slugify($text) { 
-        // replace non letter or digits by -
-        $text = preg_replace('~[^\\pL\d]+~u', '-', $text);
-        
-        // trim
-        $text = trim($text, '-');
-        
-        // transliterate
-        $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
-        
-        // lowercase
-        $text = strtolower($text);
-        
-        // remove unwanted characters
-        $text = preg_replace('~[^-\w]+~', '', $text);
-        
-        if (empty($text)) {
-            return 'n-a';
-        }
-        
-        return $text;
     }
 
     public function raiseInfo($sMessage) {

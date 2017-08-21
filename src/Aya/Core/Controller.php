@@ -7,10 +7,11 @@ use Aya\Core\Logger;
 use Aya\Core\User;
 use Aya\Debug\Panel;
 use Aya\Exception\MissingEntityException;
+use Aya\Helper\Breadcrumbs;
 use Aya\Helper\MessageList;
-use Aya\Helper\ValueMapper;
 use Aya\Helper\Text;
 use Aya\Helper\Time;
+use Aya\Helper\ValueMapper;
 
 use \Smarty;
 
@@ -139,11 +140,9 @@ abstract class Controller {
 
             // controller action
             if (method_exists($this, $action)) {
-                
-
                 $this->$action();
                 Time::stop('ctrl-action');
-
+            
                 Panel::setVar('view', $this->getViewName());
 
                 // including view for action
@@ -203,12 +202,17 @@ abstract class Controller {
                 file_put_contents($sCacheString, $output);
             }
             
-            echo $output;
+            // if (DEBUG_MODE == true) {
+            //     $indenter = new \Gajus\Dindent\Indenter();
+            //     echo $indenter->indent($output);
+            // } else {
+                echo $output;
+            // }
         }
     }
 
     public function init() {
-        $this->setViewName(Text::toPascalCase($this->getCtrlName().' '.$this->getActionName()));
+        $this->setViewName(Text::toCamelCase($this->getCtrlName().' '.$this->getActionName()));
 
         Debug::show($this->getViewName(), 'view name in init');
 
@@ -276,7 +280,6 @@ abstract class Controller {
             $oCtrl->init();
             
             $oCtrl->_renderer = $this->_renderer;
-
         
             $methodName = $sAction.'Action';
             Debug::show($methodName, 'method in actionForward()');
@@ -338,5 +341,17 @@ abstract class Controller {
         } else {
             $this->_renderer->assign('content', '404');
         }
+
+        if (User::set()) {
+			$this->_renderer->assign('user', User::get());
+		}
+
+		$this->_renderer->assign('aBreadcrumbs', Breadcrumbs::get());
+		
+		// vars in templates
+		$this->_renderer->assign('base', BASE_URL);
+		if (defined('SITE_URL')) {
+			$this->_renderer->assign('site', SITE_URL);
+		}
     }
 }
