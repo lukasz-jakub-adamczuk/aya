@@ -11,7 +11,7 @@ class FigureManager {
             return false;
         }
         if (substr($sFileName, 0, 7) == '/assets') {
-            $sFileName = ASSETS_DIR . $sFileName;
+            $sFileName = WEB_DIR . $sFileName;
         }
 
         // echo 'aaaa',$sFileName;
@@ -80,7 +80,7 @@ class FigureManager {
                 '<picture>'.
                     // '<source media="(min-resolution: 192dpi)" srcset="image.php?img='.$sFileName.'&size='.($iWidth*2).'x'.($iHeight*2).'&margin=&x=center&y=center 2x" class="spinner">'.
                     // '<img src="image.php?img='.$sFileName.'&size='.($iWidth*2).'x'.($iHeight*2).'&margin='.$bMargin.'&x='.$sCropX.'&y='.$sCropY.'" width="100%" class="spinner">'.
-                    '<img src="./tmp/'.$sFileDest.'" width="100%" class="spinner">'.
+                    '<img src="'.BASE_URL.'/tmp/'.$sFileDest.'" width="'.$iWidth.'" height="'.$iHeight.'" alt="">'.
                 '</picture>'.
             '</figure>';
         }

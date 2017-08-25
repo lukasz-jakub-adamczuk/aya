@@ -64,6 +64,7 @@ class Folder {
                         }
 
                         $aInfo['name'] = $file;
+                        // $aInfo['path'] = $path.'/'.$file;
 
                         $aContent['files'][] = $aInfo;
                     }

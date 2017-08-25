@@ -94,7 +94,7 @@ class CrudController extends Controller {
         if ($mId = $oEntity->insert(true)) {
             $this->afterInsert($mId);
             // clear cache
-            $sSqlCacheFile = CACHE_DIR . '/sql/collection/'.$this->_ctrlName.'-'.$this->_sActionName.'';
+            $sSqlCacheFile = CACHE_DIR . '/sql/collection/'.$this->_ctrlName.'-'.$this->_actionName.'';
 
             $this->raiseInfo('Wpis '.(isset($sName) ? '<strong>'.$sName.'</strong>' : '').' został utworzony.');
 
@@ -113,24 +113,22 @@ class CrudController extends Controller {
     }
     
     public function updateAction() {
+        $mId = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        $mButton = isset($_POST['button']) ? $_POST['button']: null;
+        
+        $oEntity = Dao::entity($this->_ctrlName, $mId, 'id_'.$this->_ctrlName);
+        $oEntity->setFields($_POST['dataset']);
+        
         // lock handling
-        if (Lock::exists($this->_ctrlName, (int)$_GET['id'])) {
-            $sLock = Lock::get($this->_ctrlName, (int)$_GET['id']);
+        if (Lock::exists($this->_ctrlName, $mId)) {
+            $sLock = Lock::get($this->_ctrlName, $mId);
             $aLockParts = explode(':', $sLock);
             if ($aLockParts[0] != $_SESSION['user']['id']) {
                 $this->_renderer->assign('aLock', array('id' => $aLockParts[0], 'name' => $aLockParts[1]));
             }
         } else {
-            Lock::set($this->_ctrlName, (int)$_GET['id'], $_SESSION['user']);
+            Lock::set($this->_ctrlName, $mId, $_SESSION['user']);
         }
-
-        $mButton = isset($_POST['button']) ? $_POST['button']: null;
-
-        $mId = isset($_POST['id']) ? $_POST['id'] : 0;
-        
-        $oEntity = Dao::entity($this->_ctrlName, $mId, 'id_'.$this->_ctrlName);
-        
-        $oEntity->setFields($_POST['dataset']);
 
         $aPossibleNameKeys = array('title', 'name');
         foreach ($aPossibleNameKeys as $key) {
