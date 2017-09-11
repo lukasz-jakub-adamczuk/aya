@@ -2,87 +2,143 @@
 
 namespace Aya\Helper;
 
+use Aya\Core\Debug;
+
 class FigureManager {
     
     public static function image($params) {
         if (isset($params['file'])) {
-            $sFileName = $params['file'];
+            $fileName = $params['file'];
         } else {
             return false;
         }
-        if (substr($sFileName, 0, 7) == '/assets') {
-            $sFileName = WEB_DIR . $sFileName;
+        if (substr($fileName, 0, 7) == '/assets') {
+            $fileName = WEB_DIR . $fileName;
         }
 
-        // echo 'aaaa',$sFileName;
-
-        if (file_exists($sFileName)) {
-            $sHashName = md5($sFileName);
+        if (file_exists($fileName)) {
+            $hashName = md5($fileName);
         
-            $sOriginImage = $sFileName;
+            // $sOriginImage = $fileName;
 
-            $sFileExt = isset($params['ext']) ? $params['ext'] : 'jpg';
+            $fileExt = isset($params['ext']) ? $params['ext'] : 'jpg';
 
-            $iWidth = isset($params['width']) ? $params['width'] : 320;
-            $iHeight = isset($params['height']) ? $params['height'] : 180;
-            $bMargin = isset($params['margin']) ? $params['margin'] : true;
-            $sCropX = isset($params['x']) ? $params['x'] : 'center';
-            $sCropY = isset($params['y']) ? $params['y'] : 'center';
+            $width = isset($params['width']) ? $params['width'] : 320;
+            $height = isset($params['height']) ? $params['height'] : 180;
+            $margins = isset($params['margin']) ? $params['margin'] : true;
+            $cropX = isset($params['x']) ? $params['x'] : 'center';
+            $cropY = isset($params['y']) ? $params['y'] : 'center';
+
+            if (isset($params['sizes'])) {
+                $media = ['360px', '768px', '1080px'];
+                $sizes = explode(',', $params['sizes']);
+            }
 
             if (isset($params['size'])) {
+                $media = ['1080px'];
+                $sizes[] = $params['size'];
                 $aParts = explode('x', $params['size']);
-                $iWidth = (int)$aParts[0] ? $aParts[0] : 0;
-                $iHeight = (int)$aParts[1] ? $aParts[1] : 0;
+                $width = (int)$aParts[0] ? $aParts[0] : 0;
+                $height = (int)$aParts[1] ? $aParts[1] : 0;
             }
 
-            if ($iWidth === $iHeight) {
-                $sRatio = 'ratio-1-1';
+            if ($width === $height) {
+                $className = 'ratio-1-1';
             }
 
-            if (isset($params['ratio'])) {
-                $sRatio = $params['ratio'];
+            if (isset($params['ratio']) && !is_null($params['ratio'])) {
+                if (strpos($params['ratio'], ':') !== false) {
+                    $className = 'ratio-' . str_replace(':', '-', $params['ratio']);
+                } else {
+                    $className = $params['ratio'];
+                }
             }
 
-            $sClass = isset($sRatio) ? ' class="'.$sRatio.'"' : '';
+            $className = isset($className) ? ' class="'.$className.'"' : '';
             
-            $bMargin = false;
+            $margins = false;
 
-            $sFileHash = $sHashName;
-            $sFileDest = $sFileHash.'-'.$iWidth.'-'.$iHeight.'.'.$sFileExt;
-
-            $sFileRetinaDest = $sFileHash.'-'.($iWidth*2).'-'.($iHeight*2).'.'.$sFileExt;
-
-            if (isset($params['asset'])) {
-                $sFilePath = WEB_DIR.'/tmp/'.$params['asset'].'/'.$sFileDest;
-                $sFileRetinaPath = WEB_DIR.'/tmp/'.$params['asset'].'/'.$sFileRetinaDest;
-            } else {
-                $sFilePath = WEB_DIR.'/tmp/'.$sFileDest;
-                $sFileRetinaPath = WEB_DIR.'/tmp/'.$sFileRetinaDest;
+            $filePath = [];
+            $fileDest = [];
+            $haveToGenerate = false;
+            foreach ($media as $mk => $dev) {
+                $size = explode('x', $sizes[$mk]);
+                $fileDest[$dev]['96dpi'] = $hashName.'-'.$size[0].'-'.$size[1].'.'.$fileExt;
+                // $fileDest[$dev]['192dpi'] = $fileName.'-'.($size[0]*2).'-'.($size[1]*2).'.'.$fileExt;
+                if (isset($params['asset'])) {
+                    $filePath[$dev]['96dpi'] = WEB_DIR.'/tmp/'.$params['asset'].'/'.$fileDest[$dev]['96dpi'];
+                    // $filePath[$dev]['192dpi'] = WEB_DIR.'/tmp/'.$params['asset'].'/'.$fileDest[$dev]['192dpi'];
+                } else {
+                    $filePath[$dev]['96dpi'] = WEB_DIR.'/tmp/'.$fileDest[$dev]['96dpi'];
+                    // $filePath[$dev]['192dpi'] = WEB_DIR.'/tmp/'.$fileDest[$dev]['192dpi'];
+                }
+                if (!file_exists($filePath[$dev]['96dpi'])) {
+                    $haveToGenerate |= true;
+                }
+                // if (!file_exists($filePath[$dev]['192dpi'])) {
+                //     $haveToGenerate |= true;
+                // }
             }
 
-            if (!file_exists($sFilePath)) {
-                // require_once dirname(ROOT_DIR).'/aya/src/Aya/Helper/ImageManipulator.php';
-                
-                // $oImageManipulator = new Aya\Helper\ImageManipulator();
-                $oImageManipulator = new ImageManipulator();
+            // var_dump($haveToGenerate);
 
-                $oImageManipulator->loadImage($sFileName);
-                $oImageManipulator->resize($iWidth, $iHeight, $bMargin, $sCropX, $sCropY);
-                $oImageManipulator->save($sFilePath);
+            if ($haveToGenerate) {
+                // image generation
+                $imageManipulator = new ImageManipulator();
 
-                // retina
-                $oImageManipulator->resize($iWidth*2, $iHeight*2, $bMargin, $sCropX, $sCropY);
-                $oImageManipulator->save($sFileRetinaPath);
+                foreach ($media as $mk => $dev) {
+                    $size = explode('x', $sizes[$mk]);
+                    
+                    $imageManipulator->loadImage($fileName);
+                    $imageManipulator->resize($size[0], $size[1], $margins, $cropX, $cropY);
+                    $imageManipulator->save($filePath[$dev]['96dpi']);
+
+                    // $imageManipulator->loadImage($fileName);
+                    // $imageManipulator->resize($size[0]*2, $size[1]*2, $margins, $cropX, $cropY);
+                    // $imageManipulator->save($filePath[$dev]['192dpi']);
+                }
             }
 
-            return ''.
-            '<figure'.$sClass.'>'.
+            $source = '';
+            foreach (array_reverse($media) as $mk => $dev) {
+                $source .= '<source srcset="'.BASE_URL.'/tmp/'.$fileDest[$dev]['96dpi'].'" media="(min-width: '.$dev.')">';
+            }
+            // foreach (array_reverse($media) as $mk => $dev) {
+            //     $source .= '<source srcset="'.BASE_URL.'/tmp/'.$fileDest[$dev]['192dpi'].'" media="(min-width: '.$dev.') and (min-resolution: 192dpi)">';
+            // }
+
+            $figure = ''.
+            // '<figure'.$className.'>'.
                 '<picture>'.
-                    // '<source media="(min-resolution: 192dpi)" srcset="image.php?img='.$sFileName.'&size='.($iWidth*2).'x'.($iHeight*2).'&margin=&x=center&y=center 2x" class="spinner">'.
-                    // '<img src="image.php?img='.$sFileName.'&size='.($iWidth*2).'x'.($iHeight*2).'&margin='.$bMargin.'&x='.$sCropX.'&y='.$sCropY.'" width="100%" class="spinner">'.
-                    '<img src="'.BASE_URL.'/tmp/'.$sFileDest.'" width="'.$iWidth.'" height="'.$iHeight.'" alt="">'.
+                    $source.
+                    '<img src="'.BASE_URL.'/tmp/'.$fileDest['1080px']['96dpi'].'" alt="">'.
                 '</picture>'.
-            '</figure>';
+            // '</figure>'.
+            '';
+
+
+            // $srcset = '';
+            // foreach (array_reverse($media) as $mk => $dev) {
+            //     $size = explode('x', $sizes[$mk]);
+
+            //     $srcset[] = ''.BASE_URL.'/tmp/'.$fileDest[$dev]['96dpi'].' '.$size[0].'w';
+            // }
+            // $srcset = implode(', ', $srcset);
+
+
+            // $figure = ''.
+            //     '<img srcset="'.$srcset.'"'.
+            //     // 'sizes="'..'"'.
+            //     'src="'.BASE_URL.'/tmp/'.$fileDest['1080px']['96dpi'].'" alt="...">'.
+            //     '';
+
+            // $figure = ''.
+            //     '<img srcset="'..'"'.
+            //     // 'sizes="'..'"'.
+            //     'src="'.BASE_URL.'/tmp/'.$fileDest['1080px']['96dpi'].'" alt="...">'
+            //     '';
+
+            return $figure;
         }
     }
 }

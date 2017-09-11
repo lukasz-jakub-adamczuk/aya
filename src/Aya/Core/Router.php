@@ -23,26 +23,26 @@ class Router {
         Debug::show($sController, '$_GET[ctrl] in Router');
         Debug::show($sAction, '$_GET[act] in Router');
 
-        if (defined('MVC_MAPPING') && MVC_MAPPING) {
-            $sVariablesConf = APP_DIR.'/configs/variables.conf';
-            $aConf = parse_ini_file($sVariablesConf, true);
+        
+        $sVariablesConf = APP_DIR.'/conf/mvc/variables.conf';
+        $aConf = parse_ini_file($sVariablesConf, true);
 
-            $aUrls = array();
-            foreach ($aConf['controllers'] as $key => $value) {
-                $aUrls[$key] = $value;
-            }
+        $aUrls = array();
+        foreach ($aConf['controllers'] as $key => $value) {
+            $aUrls[$key] = $value;
+        }
 
-            $aNames = array();
-            foreach ($aConf['names'] as $key => $value) {
-                $aNames[$key] = $value;
-            }
-            // print_r(array_flip($aUrls));
-            // print_r($aNames);
-            ValueMapper::assignConfig('url', $aUrls);
-            ValueMapper::assignConfig('name', $aNames);
+        $aNames = array();
+        foreach ($aConf['names'] as $key => $value) {
+            $aNames[$key] = $value;
+        }
+        // print_r(array_flip($aUrls));
+        // print_r($aNames);
+        ValueMapper::assignConfig('url', $aUrls);
+        ValueMapper::assignConfig('name', $aNames);
 
             // echo $sController;
-
+        if (defined('MVC_MAPPING') && MVC_MAPPING) {
             $sController = ValueMapper::getUrl($sController, true);
             // $sAction = ValueMapper::getUrl($sAction, true);
         }

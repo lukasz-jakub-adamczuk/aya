@@ -65,12 +65,12 @@ class Collection {
             }
         }
 
-        Debug::show($this->_aSearch);
+        //Debug::show($this->_aSearch);
         
         if ($sNavigatorOwner) {
             $this->_sOwner = $sNavigatorOwner;
         }
-        Debug::show($this->_sOwner, 'contruct owner');
+        //Debug::show($this->_sOwner, 'contruct owner');
         $this->_db = Db::getInstance();
 
         // $this->_init();
@@ -79,10 +79,10 @@ class Collection {
     public function init() {
         // default navigator values (sorting)
         $this->_defaultNavigator();
-        // Debug::show($this->_aNavigator, '$this->_aNavigator');
+        // //Debug::show($this->_aNavigator, '$this->_aNavigator');
         // load values from session storage
         $this->_loadNavigator();
-        Debug::show($this->_aNavigator, '$this->_aNavigator from Collection _prepare()');
+        //Debug::show($this->_aNavigator, '$this->_aNavigator from Collection _prepare()');
     }
 
     protected function _prepare() {
@@ -147,7 +147,7 @@ class Collection {
         // using unicode charset
         $this->_db->execute("SET NAMES utf8");
 
-        Debug::show($this->_sOwner, 'load() method');
+        //Debug::show($this->_sOwner, 'load() method');
 
         if ($iSize) {
             $this->_aNavigator['size'] = $this->_iSize = $iSize;
@@ -173,7 +173,7 @@ class Collection {
             $this->_sQuery = $this->_prepare();
         }
 
-        Debug::show($this->_sQuery);
+        // //Debug::show($this->_sQuery);
 
         // echo '_from Collection.php: '.$this->_sQuery.'_';
         // var_dump('_'.$this->_sQuery.'_');

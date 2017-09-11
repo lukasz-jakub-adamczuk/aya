@@ -1,6 +1,6 @@
 <?php
 
-namespace Aya\Management;
+namespace Aya\Mvc;
 
 use Aya\Core\Dao;
 use Aya\Core\Debug;
@@ -33,7 +33,7 @@ class InfoView extends View {
 
             // $this->postPoccessFields($aFields);
 
-            Debug::show($oInstance->getFields());
+            // Debug::show($oInstance->getFields());
             
             $sFormMode = 'update';
         } else {

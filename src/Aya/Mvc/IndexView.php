@@ -1,6 +1,6 @@
 <?php
 
-namespace Aya\Management;
+namespace Aya\Mvc;
 
 use Aya\Core\Dao;
 use Aya\Core\Debug;

@@ -126,6 +126,7 @@ class Db extends Singleton {
         // if ($this->_res = mysql_query($query)) {
         if ($this->_res = $this->_database->query($query)) {
             ++$this->_iCounter;
+            // Debug::show($query, 'Query to db #'.$this->_iCounter);
             return $this->_res;
         } else {
             if( $error == 1) {

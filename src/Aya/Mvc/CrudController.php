@@ -1,6 +1,6 @@
 <?php
 
-namespace Aya\Management;
+namespace Aya\Mvc;
 
 use Aya\Core\Controller;
 use Aya\Core\Dao;
@@ -28,7 +28,11 @@ class CrudController extends Controller {
 			// if (isset($_POST['ids'])) {
 				$this->$sAction();
 			// }
-		}
+        }
+
+        if (!$this->getTemplateName()) {
+            $this->setTemplateName('all-index');
+        }
 	}
     
     public function infoAction() {
@@ -77,7 +81,10 @@ class CrudController extends Controller {
         // print_r($aPost['dataset']);
 
         // slug by used name if empty or changed name
-		if (isset($sName) && isset($aPost['dataset']['slug']) && (empty($aPost['dataset']['slug']) || $aPost['dataset']['slug'] != Text::slugify($sName))) {
+        if (isset($sName)
+            && isset($aPost['dataset']['slug'])
+            && (empty($aPost['dataset']['slug'])
+            || $aPost['dataset']['slug'] != Text::slugify($sName))) {
 			$oEntity->setField('slug', Text::slugify($sName));
 		}
 
@@ -105,10 +112,12 @@ class CrudController extends Controller {
             // $aStreamItem = $this->prepareStreamItem($mId, $aPost);
             // $this->addToStream($aStreamItem);
 
-            $this->actionForward('index', $this->_ctrlName, true);
+            $this->redirect('index');
+            // $this->actionForward('index', $this->_ctrlName, true);
         } else {
-            $this->raiseError('Wystąpił nieoczekiwany wyjątek.');
-            $this->actionForward('info', $this->_ctrlName);
+            // $this->raiseError('Wystąpił nieoczekiwany wyjątek.');
+            // $this->actionForward('info', $this->_ctrlName);
+            $this->redirect('info');
         }
     }
     
@@ -180,10 +189,10 @@ class CrudController extends Controller {
 
             $this->afterUpdate($mId);
             
-            $this->actionForward('index', $this->_ctrlName, true);
+            // $this->actionForward('index', $this->_ctrlName, true);
         } else {
             $this->raiseError('Wystąpił nieoczekiwany wyjątek.');
-            $this->actionForward('info', $this->_ctrlName);
+            // $this->actionForward('info', $this->_ctrlName);
         }
     }
 

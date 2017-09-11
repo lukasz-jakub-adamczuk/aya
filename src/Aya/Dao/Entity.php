@@ -80,7 +80,7 @@ class Entity {
             $this->_sQuery = 'SELECT '.$this->_sSelect.' FROM '.$this->_sTable.' WHERE '.$this->_sWhere.'';
         }
 
-        Debug::show($this->_sQuery);
+        // Debug::show($this->_sQuery);
 
         $this->_db->execute("SET NAMES utf8");
 
@@ -128,6 +128,9 @@ class Entity {
         if (empty($this->_aDbFields)) {
             // throw new MissingEntityException();
         }
+
+        // Debug::show($this->_aDbFields);
+
         return $this->_aDbFields;
     }
 
@@ -194,7 +197,7 @@ class Entity {
         foreach ($this->_aQueryFields as $key => $val) {
             // echo $key.':'.$val;
             // echo $()
-            if ($val === '_NULL_') {
+            if ($val === '__NULL__') {
                 // echo '0 is null;  ';
                 $q .= 'NULL, ';
             } else {
