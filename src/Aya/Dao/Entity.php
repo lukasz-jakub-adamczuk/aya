@@ -195,14 +195,19 @@ class Entity {
         $q = substr($q, 0, -2);
         $q .= ') VALUES (';
         foreach ($this->_aQueryFields as $key => $val) {
-            // echo $key.':'.$val;
-            // echo $()
-            if ($val === '__NULL__') {
-                // echo '0 is null;  ';
+            // hack for inserting new record with null as PK
+            if ($key == ('id_' . $this->_sIdLabel )) {
                 $q .= 'NULL, ';
             } else {
-                // var_dump($val);
-                $q .= '"'.is_string($val) ? '"'.addslashes($val).'", ' : ''.addslashes($val).', ' ;
+                // echo $key.':'.$val;
+                // echo $()
+                if ($val === '__NULL__') {
+                    // echo '0 is null;  ';
+                    $q .= 'NULL, ';
+                } else {
+                    // var_dump($val);
+                    $q .= '"'.is_string($val) ? '"'.addslashes($val).'", ' : ''.addslashes($val).', ' ;
+                }
             }
         }
         $q = substr($q, 0, -2);

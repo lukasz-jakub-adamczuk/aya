@@ -29,13 +29,12 @@ class FigureManager {
             $cropX = isset($params['x']) ? $params['x'] : 'center';
             $cropY = isset($params['y']) ? $params['y'] : 'center';
 
-            if (isset($params['sizes'])) {
-                $media = ['360px', '768px', '1080px'];
-                $sizes = explode(',', $params['sizes']);
-            }
+            $output = isset($params['output']) ? $params['output'] : 'image';
+            $margins = false; //really
 
+            // old way
             if (isset($params['size'])) {
-                $media = ['1080px'];
+                $media = ['1920px'];
                 $sizes[] = $params['size'];
                 $aParts = explode('x', $params['size']);
                 $width = (int)$aParts[0] ? $aParts[0] : 0;
@@ -48,15 +47,33 @@ class FigureManager {
 
             if (isset($params['ratio']) && !is_null($params['ratio'])) {
                 if (strpos($params['ratio'], ':') !== false) {
+                    $ratio = $params['ratio'];
                     $className = 'ratio-' . str_replace(':', '-', $params['ratio']);
                 } else {
                     $className = $params['ratio'];
                 }
             }
 
+            if (!isset($ratio)) {
+                $ratio = '16:9';
+            }
+
             $className = isset($className) ? ' class="'.$className.'"' : '';
+
+            // new way
+            $media = ['360px', '768px', '1280px', '1920px'];
+            if (isset($params['sizes'])) {
+                $sizes = explode(',', $params['sizes']);
+            } else {
+                $ratioValues = explode(':', $ratio);
+
+                foreach ($media as $width) {
+                    $sizes[] = (int)$width . 'x' . round((int)$width * $ratioValues[1] / $ratioValues[0]);
+                }
+                // $sizes = explode(',', $params['sizes']);
+            }
             
-            $margins = false;
+            
 
             $filePath = [];
             $fileDest = [];
@@ -101,21 +118,28 @@ class FigureManager {
 
             $source = '';
             foreach (array_reverse($media) as $mk => $dev) {
-                $source .= '<source srcset="'.BASE_URL.'/tmp/'.$fileDest[$dev]['96dpi'].'" media="(min-width: '.$dev.')">';
+                $source .= '<source class="lazyload" data-srcset="'.BASE_URL.'/tmp/'.$fileDest[$dev]['96dpi'].'" media="(min-width: '.$dev.')">';
             }
             // foreach (array_reverse($media) as $mk => $dev) {
             //     $source .= '<source srcset="'.BASE_URL.'/tmp/'.$fileDest[$dev]['192dpi'].'" media="(min-width: '.$dev.') and (min-resolution: 192dpi)">';
             // }
 
+            $imageUrl = BASE_URL.'/tmp/'.$fileDest['1920px']['96dpi'];
+
             $figure = ''.
             // '<figure'.$className.'>'.
                 '<picture>'.
                     $source.
-                    '<img src="'.BASE_URL.'/tmp/'.$fileDest['1080px']['96dpi'].'" alt="">'.
+                    '<img class="lazyload" data-src="'.$imageUrl.'" alt="">'.
                 '</picture>'.
             // '</figure>'.
             '';
 
+            if ($output === 'url') {
+                return $imageUrl;
+            } else {
+                return $figure;
+            }
 
             // $srcset = '';
             // foreach (array_reverse($media) as $mk => $dev) {
@@ -138,7 +162,7 @@ class FigureManager {
             //     'src="'.BASE_URL.'/tmp/'.$fileDest['1080px']['96dpi'].'" alt="...">'
             //     '';
 
-            return $figure;
+            // return $figure;
         }
     }
 }

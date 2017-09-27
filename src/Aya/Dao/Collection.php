@@ -216,6 +216,14 @@ class Collection {
         $this->_iSize = $iSize;
     }
 
+    public function setTable($table) {
+        $this->_sTable = $table;
+    }
+
+    public function setPrimaryKey($primaryKey) {
+        $this->_mId = $primaryKey;
+    }
+
     public function setSearchFields($aSearch) {
         $this->_aSearch = $aSearch;
     }

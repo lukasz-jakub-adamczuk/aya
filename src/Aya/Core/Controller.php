@@ -156,7 +156,7 @@ abstract class Controller {
 
     protected function _authAction() {
         if (AUTH_MODE) {
-            if (!User::set()) {
+            if (!User::set() && $this->getCtrlName() !== 'auth') {
                 header('Location: '.BASE_URL.'/auth', TRUE, 303);
                 // $this->setTemplateName('auth');
                 exit();
@@ -355,6 +355,8 @@ abstract class Controller {
     public function afterAction() {
         $this->_renderer->assign('ctrl', $this->getCtrlName());
         $this->_renderer->assign('act', $this->getActionName());
+
+        $this->_renderer->assign('auth', AUTH_MODE);
 
         // defining template name
         Debug::show($this->_templateName, 'template name in afterAction() in ' . $this->getCtrlName() . ' ctrl');

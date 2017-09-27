@@ -123,6 +123,7 @@ class Db extends Singleton {
      * @return unknown_type
      */
     public function execute($query, $error = 1) {
+        // echo $query;
         // if ($this->_res = mysql_query($query)) {
         if ($this->_res = $this->_database->query($query)) {
             ++$this->_iCounter;

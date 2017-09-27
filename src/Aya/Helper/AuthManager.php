@@ -10,33 +10,15 @@ class AuthManager {
 
     public static function login() {
         if (isset($_POST['auth'])) {
-            $sUser = isset($_POST['auth']['user']) ? $_POST['auth']['user'] : '';
-            $sPass = isset($_POST['auth']['pass']) ? $_POST['auth']['pass'] : '';
-            if (!empty($sUser) && !empty($sPass)) {
-                $sql = 'SELECT u.*, ug.slug group_slug, ug.name group_name, up.*
-                        FROM user u
-                        LEFT JOIN user_group ug ON(ug.id_user_group=u.id_user_group)
-                        LEFT JOIN user_permission up ON(up.id_user=u.id_user)
-                        WHERE u.name="'.addslashes($sUser).'" AND u.hash="'.sha1(addslashes(strtolower($sUser)).addslashes($sPass)).'"';
-                $oEntity = Dao::entity('user');
-                $oEntity->query($sql);
+            $username = isset($_POST['auth']['user']) ? $_POST['auth']['user'] : '';
+            $password = isset($_POST['auth']['pass']) ? $_POST['auth']['pass'] : '';
+            if (!empty($username) && !empty($password)) {
+                $userEntity = Dao::entity('user');
+                
+                $user = $userEntity->authenticateUser($username, $password);
 
-                $oEntity->load();
-
-                $aUser = $oEntity->getFields();
-
-                if ($aUser) {
-                    $_SESSION['user']['id'] = $aUser['id_user'];
-                    $_SESSION['user']['name'] = $aUser['name'];
-                    $_SESSION['user']['slug'] = $aUser['slug'];
-                    $_SESSION['user']['active'] = $aUser['active'];
-                    $_SESSION['user']['group'] = isset($aUser['group_slug']) ? $aUser['group_slug'] : '';
-                    $_SESSION['user']['perm'] = isset($aUser['sz_perm']) ? $aUser['sz_perm'] : '';
-                    $_SESSION['user']['avatar'] = $sAvatarFile = AvatarManager::getAvatar($aUser['slug']);
-                    
-                    // set user container after login
-                    User::set($_SESSION['user']);
-                    return true;
+                if ($user) {
+                    return AuthManager::setUser($user);
                 }
             }
         }
@@ -50,5 +32,19 @@ class AuthManager {
             return true;
         }
         return false;
+    }
+
+    public static function setUser($user) {
+        $_SESSION['user']['id'] = $user['id_user'];
+        $_SESSION['user']['name'] = $user['name'];
+        $_SESSION['user']['slug'] = $user['slug'];
+        $_SESSION['user']['active'] = $user['active'];
+        $_SESSION['user']['group'] = isset($user['group_slug']) ? $user['group_slug'] : '';
+        $_SESSION['user']['perm'] = isset($user['sz_perm']) ? $user['sz_perm'] : '';
+        $_SESSION['user']['avatar'] = $sAvatarFile = AvatarManager::getAvatar($user['slug']);
+        
+        // set user container after login
+        User::set($_SESSION['user']);
+        return true;
     }
 }
