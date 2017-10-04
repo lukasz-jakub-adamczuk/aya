@@ -48,6 +48,8 @@ class InfoView extends View {
         $this->_renderer->assign('sFormMainPartTemplate', 'forms/'.$_GET['ctrl'].'-info-main.tpl');
         $this->_renderer->assign('sFormSubPartTemplate', 'forms/'.$_GET['ctrl'].'-info-sub.tpl');
 
+        $this->_renderer->assign('entityPrimaryKey', 'id_'.$this->_sDaoIndex);
+
         
         // insert or update with errors
         if (isset($_POST['dataset'])) {

@@ -73,9 +73,9 @@ class IndexView extends View {
 
         Navigator::setOwner($this->_sOwner);
 
-        $this->_renderer->assign('aSections', $this->_getSections());
-        $this->_renderer->assign('aMassActions', $this->_getMassActions());
-        $this->_renderer->assign('aRelatedActions', $this->_getRelatedActions());
+        $this->_renderer->assign('sections', $this->_getSections());
+        $this->_renderer->assign('massActions', $this->_getMassActions());
+        $this->_renderer->assign('relatedActions', $this->_getRelatedActions());
     }
     
     public function fill() {
@@ -260,17 +260,19 @@ class IndexView extends View {
         $oPaginator = new Paginator($this->_oCollection->getNavigator());
         
         // if theme bootstrap
-        // if (THEME_NAME == 'bootstrap') {
-        //     $aOptions = array(
-        //         'outer-wrapper' => 'nav',
-        //         // 'outer-wrapper-class' => null,
-        //         // 'inner-wrapper' => 'ul',
-        //         'inner-wrapper-class' => 'pagination',
-        //         'active-element' => 'li',
-        //         // 'active-element-class' => 'active'
-        //     );
-        //     $oPaginator->setOptions($aOptions);
-        // }
+        if (strpos(THEME_DIR, 'andromeda') !== false) {
+            $aOptions = array(
+                'outer-wrapper' => 'nav',
+                'inner-wrapper' => 'ul',
+                'inner-wrapper-class' => 'pagination justify-content-end',
+                'page-item' => 'li',
+                'page-item-class' => 'page-item',
+                'page-link-class' => 'page-link',
+                'active-element' => 'li',
+                'active-element-class' => 'active'
+            );
+            $oPaginator->setOptions($aOptions);
+        }
 
         $sPaginator = $oPaginator->configure('archive', BASE_URL.'/'.$_GET['ctrl'])->generate();
         $this->_renderer->assign('sPaginator', $sPaginator);

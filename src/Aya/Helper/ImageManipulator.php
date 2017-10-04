@@ -4,126 +4,132 @@ namespace Aya\Helper;
 
 class ImageManipulator {
     
-    private $_rImage;
+    private $image;
     
-    private $_name;
+    private $name;
     
     private $_sType;
     
-    private $_sOrientation;
+    private $orientation;
     
-    private $_iWidth;
+    private $width;
     
-    private $_iHeight;
+    private $height;
     
-    private $_iWidthRatio;
+    private $widthRatio;
     
-    private $_iHeightRatio;
+    private $heightRatio;
     
     public function __construct() {
         
     }
     
     public function loadImage($sImage) {
-        $this->_name = $sImage;
+        $this->name = $sImage;
         
         // checking image type
         if ($this->imgType($sImage) == "IMAGETYPE_JPEG") {
-            $rImage = imagecreatefromjpeg($sImage);
+            $this->image = imagecreatefromjpeg($sImage);
         } elseif ($this->imgType($sImage) == "IMAGETYPE_GIF") {
-            $rImage = imagecreatefromgif($sImage);
+            $this->image = imagecreatefromgif($sImage);
         } elseif ($this->imgType($sImage) == "IMAGETYPE_PNG") {
-            $rImage = imagecreatefrompng($sImage);
+            $this->image = imagecreatefrompng($sImage);
         } else {
             die('Wrong filetype! Accepted images: JPG/JPEG, GIF, PNG');
         }
         
-        $this->_rImage = $rImage;
+        $this->width = imagesx($this->image);
+        $this->height = imagesy($this->image);
         
-        $this->_iWidth = imagesx($this->_rImage);
-        $this->_iHeight = imagesy($this->_rImage);
-        
-        if ($this->_iWidth > $this->_iHeight) {
-            $this->_sOrientation = 'landscape';
-        } elseif ($this->_iWidth < $this->_iHeight) {
-            $this->_sOrientation = 'portrait';
+        if ($this->width > $this->height) {
+            $this->orientation = 'landscape';
+        } elseif ($this->width < $this->height) {
+            $this->orientation = 'portrait';
         } else {
-            $this->_sOrientation = 'square';
+            $this->orientation = 'square';
         }
+    }
+
+    public function getImageWidth() {
+        return $this->width;
+    }
+
+    public function getImageHeight() {
+        return $this->height;
     }
     
     public function resize($iWidth = 0, $iHeight = 0, $bMargin = true, $sHorCrop = 'center', $sVerCrop = 'center') {
         // check image orientation
-        // echo $this->_sOrientation;
+        // echo $this->orientation;
 
         // images ratios
-        $dSourceRatio = $this->_iWidth / $this->_iHeight;
+        $dSourceRatio = $this->width / $this->height;
         if ($iWidth && $iHeight) {
             $dDestRatio = $iWidth / $iHeight;
         } else {
             // known only width of expected image
             if ($iWidth) {
-                $iHeight = (int)$iWidth * $this->_iHeight / $this->_iWidth;
+                $iHeight = (int)$iWidth * $this->height / $this->width;
             }
             // known only height of expected image
             if ($iHeight) {
-                $iWidth = $iHeight * $this->_iWidth / $this->_iHeight;
+                $iWidth = $iHeight * $this->width / $this->height;
             }
             // should know both sizes
             if ($iWidth && $iHeight) {
                 $dDestRatio = $iWidth / $iHeight;
             } else {
-                $dDestRatio = $this->_iWidth / $this->_iHeight;
+                $dDestRatio = $this->width / $this->height;
             }
         }
         // echo 'dSourceRatio: '.$dSourceRatio.'<br>';
         // echo '$dDestRatio:  '.$dDestRatio.'<br>';
             
-        if ($this->_sOrientation == 'landscape') {
+        if ($this->orientation == 'landscape') {
             if ($dSourceRatio > $dDestRatio) {
                 $bMargin = 1;
             }
 
             if ($bMargin) {
-                $this->_iHeightRatio = ($this->_iHeight > $iHeight) ? $iHeight / $this->_iHeight : 1;
-                $this->_iWidthRatio = $this->_iHeightRatio;
+                $this->heightRatio = ($this->height > $iHeight) ? $iHeight / $this->height : 1;
+                $this->widthRatio = $this->heightRatio;
                 $sMove = 'x';
             } else {
-                $this->_iWidthRatio = ($this->_iWidth > $iWidth) ? $iWidth / $this->_iWidth : 1;
-                $this->_iHeightRatio = $this->_iWidthRatio;
+                $this->widthRatio = ($this->width > $iWidth) ? $iWidth / $this->width : 1;
+                $this->heightRatio = $this->widthRatio;
                 $sMove = 'y';
             }
-        } elseif ($this->_sOrientation == 'portrait') {
+        } elseif ($this->orientation == 'portrait') {
             if ($bMargin) {
-                $this->_iHeightRatio = ($this->_iHeight > $iHeight) ? $iHeight / $this->_iHeight : 1;
-                $this->_iWidthRatio = $this->_iHeightRatio;
+                $this->heightRatio = ($this->height > $iHeight) ? $iHeight / $this->height : 1;
+                $this->widthRatio = $this->heightRatio;
                 $sMove = 'x';
             } else {
-                $this->_iWidthRatio = ($this->_iWidth > $iWidth) ? $iWidth / $this->_iWidth : 1;
-                $this->_iHeightRatio = $this->_iWidthRatio;
+                $this->widthRatio = ($this->width > $iWidth) ? $iWidth / $this->width : 1;
+                $this->heightRatio = $this->widthRatio;
                 $sMove = 'y';
             }
         } else {
             // TODO check is it correct ?
             if ($iWidth > $iHeight) {
                 if ($bMargin) {
-                    $this->_iWidthRatio = $this->_iHeightRatio = $iHeight / $this->_iHeight;
+                    $this->widthRatio = $this->heightRatio = $iHeight / $this->height;
                 } else {
-                    $this->_iWidthRatio = $this->_iHeightRatio = $iWidth / $this->_iWidth;
+                    $this->widthRatio = $this->heightRatio = $iWidth / $this->width;
                 }
                 $sMove = 'x';
             } else {
                 if ($bMargin) {
-                    $this->_iWidthRatio = $this->_iHeightRatio = $iWidth / $this->_iWidth;
+                    $this->widthRatio = $this->heightRatio = $iWidth / $this->width;
                 } else {
-                    $this->_iWidthRatio = $this->_iHeightRatio = $iHeight / $this->_iHeight;
+                    $this->widthRatio = $this->heightRatio = $iHeight / $this->height;
                 }
                 $sMove = 'y';
             }
         }
         
-        $iNewWidth = $this->_iWidth * $this->_iWidthRatio;
-        $iNewHeight = $this->_iHeight * $this->_iHeightRatio;
+        $iNewWidth = $this->width * $this->widthRatio;
+        $iNewHeight = $this->height * $this->heightRatio;
         
 //        echo '$iNewWidth'. $iNewWidth.'<br />';
 //        echo '$iNewHeight'. $iNewHeight.'<br />';
@@ -152,36 +158,36 @@ class ImageManipulator {
         $rBackground = imagecolorallocate($rImage, 255, 255, 255);
         
         imagefill($rImage, 0, 0, $rBackground);
-        imagecopyresampled($rImage, $this->_rImage, $sMoveWidth, $sMoveHeight, 0, 0, $iNewWidth, $iNewHeight, $this->_iWidth, $this->_iHeight);
+        imagecopyresampled($rImage, $this->image, $sMoveWidth, $sMoveHeight, 0, 0, $iNewWidth, $iNewHeight, $this->width, $this->height);
         
-        $this->_name = dirname(__FILE__).'/image-'.$iWidth.'-'.$iHeight.'.jpg';
-        $this->_rImage = $rImage;
+        $this->name = dirname(__FILE__).'/image-'.$iWidth.'-'.$iHeight.'.jpg';
+        $this->image = $rImage;
         
-        //imagejpeg($rImage, $this->_name);
+        //imagejpeg($rImage, $this->name);
     }
     
     public function show() {
-        //return '<img src="'.basename($this->_name).'" />';
-        echo '<img src="'.basename($this->_name).'" style="border: 1px solid #aaa; margin: 5px;" />';
+        //return '<img src="'.basename($this->name).'" />';
+        echo '<img src="'.basename($this->name).'" style="border: 1px solid #aaa; margin: 5px;" />';
     }
     
     public function debug() {
         echo '<pre>';
-        echo 'img width :      '.$this->_iWidth."\n"
-            .'img height:      '.$this->_iHeight."\n"
-            .'img ratio width: '.$this->_iWidthRatio."\n"
-            .'img ratio height:'.$this->_iHeightRatio."\n"
+        echo 'img width :      '.$this->width."\n"
+            .'img height:      '.$this->height."\n"
+            .'img ratio width: '.$this->widthRatio."\n"
+            .'img ratio height:'.$this->heightRatio."\n"
             .'</pre>';
     }
     
     public function save($sFile) {
-        $sFile = isset($sFile) ? $sFile : $this->_name;
+        $sFile = isset($sFile) ? $sFile : $this->name;
 
         if (!file_exists(dirname($sFile))) {
             mkdir(dirname($sFile), 0777, true);
         }
         // TODO save to another file also
-        imagejpeg($this->_rImage, $sFile);
+        imagejpeg($this->image, $sFile);
     }
     
     protected function _saveToFile($rImage, $sImageName) {

@@ -41,8 +41,10 @@ class FigureManager {
                 $height = (int)$aParts[1] ? $aParts[1] : 0;
             }
 
+            // ratio and classname
             if ($width === $height) {
                 $className = 'ratio-1-1';
+                $ratio = '1:1';
             }
 
             if (isset($params['ratio']) && !is_null($params['ratio'])) {
@@ -61,17 +63,20 @@ class FigureManager {
             $className = isset($className) ? ' class="'.$className.'"' : '';
 
             // new way
-            $media = ['360px', '768px', '1280px', '1920px'];
-            if (isset($params['sizes'])) {
-                $sizes = explode(',', $params['sizes']);
-            } else {
-                $ratioValues = explode(':', $ratio);
+            if (empty($sizes)) {
+                $media = ['360px', '768px', '1280px', '1920px'];
+                if (isset($params['sizes'])) {
+                    $sizes = explode(',', $params['sizes']);
+                } else {
+                    $ratioValues = explode(':', $ratio);
 
-                foreach ($media as $width) {
-                    $sizes[] = (int)$width . 'x' . round((int)$width * $ratioValues[1] / $ratioValues[0]);
+                    foreach ($media as $width) {
+                        $sizes[] = (int)$width . 'x' . round((int)$width * $ratioValues[1] / $ratioValues[0]);
+                    }
+                    // $sizes = explode(',', $params['sizes']);
                 }
-                // $sizes = explode(',', $params['sizes']);
             }
+
             
             
 
@@ -107,8 +112,11 @@ class FigureManager {
                     $size = explode('x', $sizes[$mk]);
                     
                     $imageManipulator->loadImage($fileName);
-                    $imageManipulator->resize($size[0], $size[1], $margins, $cropX, $cropY);
-                    $imageManipulator->save($filePath[$dev]['96dpi']);
+                    // check original size
+                    if ($imageManipulator->getImageWidth() > $size[0]) {
+                        $imageManipulator->resize($size[0], $size[1], $margins, $cropX, $cropY);
+                        $imageManipulator->save($filePath[$dev]['96dpi']);
+                    }
 
                     // $imageManipulator->loadImage($fileName);
                     // $imageManipulator->resize($size[0]*2, $size[1]*2, $margins, $cropX, $cropY);
@@ -118,7 +126,9 @@ class FigureManager {
 
             $source = '';
             foreach (array_reverse($media) as $mk => $dev) {
-                $source .= '<source class="lazyload" data-srcset="'.BASE_URL.'/tmp/'.$fileDest[$dev]['96dpi'].'" media="(min-width: '.$dev.')">';
+                if (!empty($fileDest[$dev]['96dpi'])) {
+                    $source .= '<source class="lazyload" data-srcset="'.BASE_URL.'/tmp/'.$fileDest[$dev]['96dpi'].'" media="(min-width: '.$dev.')">';
+                }
             }
             // foreach (array_reverse($media) as $mk => $dev) {
             //     $source .= '<source srcset="'.BASE_URL.'/tmp/'.$fileDest[$dev]['192dpi'].'" media="(min-width: '.$dev.') and (min-resolution: 192dpi)">';

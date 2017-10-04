@@ -29,6 +29,7 @@ class PictureManager {
             $sCropX = isset($params['x']) ? $params['x'] : 'center';
             $sCropY = isset($params['y']) ? $params['y'] : 'center';
 
+            // size check
             if (isset($params['size'])) {
                 $aParts = explode('x', $params['size']);
                 $iWidth = (int)$aParts[0] ? $aParts[0] : 0;
