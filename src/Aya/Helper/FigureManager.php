@@ -34,7 +34,7 @@ class FigureManager {
 
             // old way
             if (isset($params['size'])) {
-                $media = ['1920px'];
+                $media = ['360px'];
                 $sizes[] = $params['size'];
                 $aParts = explode('x', $params['size']);
                 $width = (int)$aParts[0] ? $aParts[0] : 0;
@@ -125,16 +125,25 @@ class FigureManager {
             }
 
             $source = '';
-            foreach (array_reverse($media) as $mk => $dev) {
+            foreach ($media as $mk => $dev) {
+            // foreach (array_reverse($media) as $mk => $dev) {
+                // $widthMax = next($media)
+                // echo $mk;
                 if (!empty($fileDest[$dev]['96dpi'])) {
-                    $source .= '<source class="lazyload" data-srcset="'.BASE_URL.'/tmp/'.$fileDest[$dev]['96dpi'].'" media="(min-width: '.$dev.')">';
+                    $mq = '(min-width: '.$dev.')';
+                    if (isset($media[$mk+1])) {
+                        $mq .= ' and (max-width: '.($media[$mk+1]-1).'px)';
+                    }
+                    $srcset = BASE_URL.'/tmp/'.$fileDest[$dev]['96dpi'];
+                    $source .= '<source class="lazyload" data-srcset="'.$srcset.'" media="'.$mq.'">';
                 }
             }
             // foreach (array_reverse($media) as $mk => $dev) {
             //     $source .= '<source srcset="'.BASE_URL.'/tmp/'.$fileDest[$dev]['192dpi'].'" media="(min-width: '.$dev.') and (min-resolution: 192dpi)">';
             // }
 
-            $imageUrl = BASE_URL.'/tmp/'.$fileDest['1920px']['96dpi'];
+            // $imageUrl = BASE_URL.'/tmp/'.$fileDest['360px']['96dpi'];
+            $imageUrl = '';
 
             $figure = ''.
             // '<figure'.$className.'>'.

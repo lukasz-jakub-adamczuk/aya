@@ -145,13 +145,12 @@ class Collection {
 
     public function load($iSize = null) {
         // using unicode charset
-        $this->_db->execute("SET NAMES utf8");
+        // $this->_db->execute("SET NAMES utf8");
 
         //Debug::show($this->_sOwner, 'load() method');
 
         if ($iSize) {
             $this->_aNavigator['size'] = $this->_iSize = $iSize;
-
         }
 
         // tmp hack
@@ -178,7 +177,25 @@ class Collection {
         // echo '_from Collection.php: '.$this->_sQuery.'_';
         // var_dump('_'.$this->_sQuery.'_');
 
-        $this->_aRows = $this->_db->getArray($this->_sQuery, $this->_mId);
+        // sql cache
+        $sqlPath = CACHE_DIR . '/sql';
+        if (!file_exists($sqlPath)) {
+            mkdir($sqlPath);
+        }
+        $sqlHash = md5($this->_sQuery);
+        $sqlFile = $sqlPath.'/'.$sqlHash;
+        if (file_exists($sqlFile)) {
+            // echo 'from cache';
+            $this->_aRows = unserialize(file_get_contents($sqlFile));
+        } else {
+            // using unicode charset
+            $this->_db->execute("SET NAMES utf8");
+
+            // echo 'from db';
+            $this->_aRows = $this->_db->getArray($this->_sQuery, $this->_mId);
+
+            file_put_contents($sqlFile, serialize($this->_aRows));
+        }
         $this->_bLoaded = 1;
     }
 

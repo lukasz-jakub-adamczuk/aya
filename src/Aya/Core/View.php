@@ -2,6 +2,8 @@
 
 namespace Aya\Core;
 
+use Aya\Core\Logger;
+
 abstract class View {
 
     protected $_sViewName;
@@ -41,6 +43,12 @@ abstract class View {
     public function beforeFill() {}
 
     public function afterFill() {}
+
+    public function redirect($url, $code = 301) {
+        Logger::logStandardRequest('redirects');
+
+        header('Location: '.$url, TRUE, $code);
+    }
 
     // copied from Controller
     public function raiseInfo($sMessage) {

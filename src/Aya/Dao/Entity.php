@@ -82,11 +82,31 @@ class Entity {
 
         // Debug::show($this->_sQuery);
 
-        $this->_db->execute("SET NAMES utf8");
+        // sql cache
+        $sqlPath = CACHE_DIR . '/sql';
+        if (!file_exists($sqlPath)) {
+            mkdir($sqlPath);
+        }
+        $sqlHash = md5($this->_sQuery);
+        $sqlFile = $sqlPath.'/'.$sqlHash;
+        if (file_exists($sqlFile)) {
+            // echo 'from cache';
+            $this->_aDbFields = unserialize(file_get_contents($sqlFile));
+        } else {
+            // using unicode charset
+            $this->_db->execute("SET NAMES utf8");
+
+            // echo 'from db';
+            $this->_aDbFields = $this->_db->getRow($this->_sQuery);
+
+            file_put_contents($sqlFile, serialize($this->_aDbFields));
+        }
+
+        // $this->_db->execute("SET NAMES utf8");
 
         // echo $this->_sQuery;
         
-        $this->_aDbFields = $this->_db->getRow($this->_sQuery);
+        // $this->_aDbFields = $this->_db->getRow($this->_sQuery);
         $this->_bLoaded = 1;
 
         // $this->_bModified = 0;
@@ -126,7 +146,7 @@ class Entity {
             $this->_mId = $this->_aDbFields['id_'.$this->_sIdLabel.''];
         }
         if (empty($this->_aDbFields)) {
-            // throw new MissingEntityException();
+            throw new MissingEntityException();
         }
 
         // Debug::show($this->_aDbFields);
