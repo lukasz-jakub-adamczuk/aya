@@ -3,7 +3,10 @@
 namespace Aya\Core;
 
 use Aya\Core\Debug;
+use Aya\Helper\Text;
 use Aya\Helper\ValueMapper;
+
+use Aya\Exception\MissingControllerException;
 
 class Router {
 
@@ -24,22 +27,22 @@ class Router {
         Debug::show($sAction, '$_GET[act] in Router');
 
         
-        $sVariablesConf = APP_DIR.'/conf/mvc/variables.conf';
-        $aConf = parse_ini_file($sVariablesConf, true);
+        $variablesConf = APP_DIR.'/conf/mvc/variables.conf';
+        $conf = parse_ini_file($variablesConf, true);
 
-        $aUrls = array();
-        foreach ($aConf['controllers'] as $key => $value) {
-            $aUrls[$key] = $value;
-        }
+        // $aUrls = array();
+        // foreach ($conf['controllers'] as $key => $value) {
+        //     $aUrls[$key] = $value;
+        // }
 
-        $aNames = array();
-        foreach ($aConf['names'] as $key => $value) {
-            $aNames[$key] = $value;
-        }
+        // $aNames = array();
+        // foreach ($conf['names'] as $key => $value) {
+        //     $aNames[$key] = $value;
+        // }
         // print_r(array_flip($aUrls));
         // print_r($aNames);
-        ValueMapper::assignConfig('url', $aUrls);
-        ValueMapper::assignConfig('name', $aNames);
+        ValueMapper::assignConfig('url', $conf['controllers']);
+        ValueMapper::assignConfig('name', $conf['names']);
 
             // echo $sController;
         if (defined('MVC_MAPPING') && MVC_MAPPING) {
@@ -48,24 +51,48 @@ class Router {
         }
         // echo $sAction;
 
-        $sControllerName = str_replace(' ', '', ucwords(str_replace('-', ' ', $sController))).'Controller';
+        echo $controllerName = Text::toCamelCase($sController).'Controller';
 
-        $controllerFile = CTRL_DIR.'/'.$sControllerName.'.php';
+        $controllerFile = CTRL_DIR.'/'.$controllerName.'.php';
         
-        // try {
-            require_once $controllerFile;
-            $ctrl = APP_NS."\\Controller\\$sControllerName";
-            $oController = new $ctrl;
-            // $oController = new Renaissance\Controller\{$sControllerName};
+        if (!file_exists($controllerFile)) {
+            // echo 'before';
+            // throw new MissingControllerException();
+            // echo 'after';
             
-            $oController->setCtrlName($sController);
-            $oController->setActionName($sAction);
+
+            $controllerName = 'FrontController';
+            $controllerFile = CTRL_DIR.'/'.$controllerName.'.php';
+            require_once $controllerFile;
+            $ctrl = APP_NS."\\Controller\\$controllerName";
+            $controller = new $ctrl;
+            $controller->setTemplateName('404');
+        } else {
+            require_once $controllerFile;
+            $ctrl = APP_NS."\\Controller\\$controllerName";
+            $controller = new $ctrl;
+        }
+        
+        
+        // $controller = new $ctrl;
+        
+        $controller->setCtrlName($sController);
+        $controller->setActionName($sAction);
+
+        // try {
+            // $controller->run();
         // } catch (MissingControllerException $e) {
-            // what else
+        //     $this->setTemplateName('404');
+        //     Logger::logStandardRequest('404');
+        //     // $this->_renderer->assign('content', '404');
         // }
 
-        $oController->run();
+        // if (!file_exists($controllerFile)) {
 
-        return $oController;
+        // }
+
+
+
+        return $controller;
     }
 }

@@ -4,33 +4,42 @@ namespace Aya\Helper;
 
 class ValueMapper {
 
-    private static $_aValues;
+    private static $_values;
 
-    static public function assignConfig($sName, $aValues) {
-        self::$_aValues[$sName] = $aValues;
-        self::$_aValues[$sName.'-inverted'] = array_flip($aValues);
+    static public function assignConfig($name, $values) {
+        self::$_values[$name] = $values;
+        self::$_values[$name.'-inverted'] = array_flip($values);
     }
 
-    static public function getName($sKey, $bInverted = false) {
-        return self::_get($sKey, 'name', $bInverted);
+    static public function getName($key, $bInverted = false) {
+        return self::_get($key, 'name', $bInverted);
     }
 
-    static public function getUrl($sKey, $bInverted = false) {
-        return self::_get($sKey, 'url', $bInverted);
+    static public function getUrl($key, $bInverted = false) {
+        return self::_get($key, 'url', $bInverted);
     }
 
-    static private function _get($sKey, $sName, $bInverted = false) {
+    static public function hasValue($key) {
+        // if ()
+        return self::_get($key, 'url', $bInverted);
+    }
+
+    static public function allValues() {
+        return self::$_values;
+    }
+
+    static private function _get($key, $name, $bInverted = false) {
         if ($bInverted) {
-            if (isset(self::$_aValues[$sName.'-inverted'][$sKey])) {
-                return self::$_aValues[$sName.'-inverted'][$sKey];
+            if (isset(self::$_values[$name.'-inverted'][$key])) {
+                return self::$_values[$name.'-inverted'][$key];
             } else {
-                return $sKey;
+                return $key;
             }
         } else {
-            if (isset(self::$_aValues[$sName][$sKey])) {
-                return self::$_aValues[$sName][$sKey];
+            if (isset(self::$_values[$name][$key])) {
+                return self::$_values[$name][$key];
             } else {
-                return $sKey;
+                return $key;
             }
         }
     }

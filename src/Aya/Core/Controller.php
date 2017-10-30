@@ -6,12 +6,13 @@ use Aya\Core\Db;
 use Aya\Core\Logger;
 use Aya\Core\User;
 use Aya\Debug\Panel;
-use Aya\Exception\MissingEntityException;
 use Aya\Helper\Breadcrumbs;
 use Aya\Helper\MessageList;
 use Aya\Helper\Text;
 use Aya\Helper\Time;
 use Aya\Helper\ValueMapper;
+
+use Aya\Exception\MissingEntityException;
 
 use \Smarty;
 
@@ -145,7 +146,9 @@ abstract class Controller {
                 //Debug::show($templateName, '3. template init');
             }
         }
-        $this->setTemplateName($templateName);
+        if (!$this->getTemplateName()) {
+            $this->setTemplateName($templateName);
+        }
 
         Debug::show($this->getTemplateName(), 'template name in init() in ' . $this->getCtrlName() . ' ctrl');
 
@@ -193,6 +196,10 @@ abstract class Controller {
                     try {
                         $this->_view->run();
                     } catch (MissingEntityException $e) {
+                        $this->setTemplateName('404');
+                        Logger::logStandardRequest('404');
+                        // $this->_renderer->assign('content', '404');
+                    } catch (MissingControllerException $e) {
                         $this->setTemplateName('404');
                         Logger::logStandardRequest('404');
                         // $this->_renderer->assign('content', '404');
