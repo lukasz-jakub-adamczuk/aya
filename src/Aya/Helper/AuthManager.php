@@ -5,6 +5,9 @@ namespace Aya\Helper;
 use Aya\Core\Dao;
 use Aya\Core\User;
 use Aya\Helper\AvatarManager;
+use Aya\Helper\MessageList;
+
+use Aya\Exception\MissingEntityException;
 
 class AuthManager {
 
@@ -15,10 +18,16 @@ class AuthManager {
             if (!empty($username) && !empty($password)) {
                 $userEntity = Dao::entity('user');
                 
-                $user = $userEntity->authenticateUser($username, $password);
-
-                if ($user) {
-                    return AuthManager::setUser($user);
+                try {
+                    $user = $userEntity->authenticateUser($username, $password);
+                    // echo 'entity:'; print_r($userEntity);
+                    // echo 'USER'; print_r($user);
+                    if ($user) {
+                        return AuthManager::setUser($user);
+                    }
+                } catch (MissingEntityException $e) {
+                    // not found user
+                    MessageList::raiseError('Nieprawidłowa nazwa użytkownika lub hasło.');
                 }
             }
         }
@@ -41,7 +50,7 @@ class AuthManager {
         $_SESSION['user']['active'] = $user['active'];
         $_SESSION['user']['group'] = isset($user['group_slug']) ? $user['group_slug'] : '';
         $_SESSION['user']['perm'] = isset($user['sz_perm']) ? $user['sz_perm'] : '';
-        $_SESSION['user']['avatar'] = $sAvatarFile = AvatarManager::getAvatar($user['slug']);
+        $_SESSION['user']['avatar'] = AvatarManager::getAvatar($user['slug']);
         
         // set user container after login
         User::set($_SESSION['user']);

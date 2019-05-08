@@ -184,7 +184,7 @@ class Collection {
         }
         $sqlHash = md5($this->_sQuery);
         $sqlFile = $sqlPath.'/'.$sqlHash;
-        if (file_exists($sqlFile)) {
+        if (CACHE_SQL && file_exists($sqlFile)) {
             // echo 'from cache';
             $this->_aRows = unserialize(file_get_contents($sqlFile));
         } else {
@@ -195,7 +195,9 @@ class Collection {
             $this->_aRows = $this->_db->getArray($this->_sQuery, $this->_mId);
 
             file_put_contents($sqlFile, serialize($this->_aRows));
+            // print_r($this->_aRows);
         }
+        $this->_aRows = $this->_db->getArray($this->_sQuery, $this->_mId);
         $this->_bLoaded = 1;
     }
 
@@ -206,8 +208,14 @@ class Collection {
     }
 
     public function getCount() {
-        $this->_sQuery = 'SELECT COUNT('.$this->_mId.') AS total '.$this->getFromPart().''.$this->_getWhere().'';
-        return $this->_db->getOne($this->_sQuery, 'total');
+        if ($this->_sQuery) {
+            $swapQuery = $this->_sQuery;
+            $this->_sQuery = 'SELECT COUNT('.$this->_mId.') AS total '.$this->getFromPart().''.$this->_getWhere().'';
+            $counter = $this->_db->getOne($this->_sQuery, 'total');
+            $this->_sQuery = $swapQuery;
+            return $counter;
+        }
+        return 0;
     }
 
     public function getOne($query) {
@@ -332,6 +340,7 @@ class Collection {
 
     public function query($sQuery) {
         $this->_sQuery = $sQuery;
+        // $this->_bLoaded = 0;
     }
 
     public function select($mSelect) {

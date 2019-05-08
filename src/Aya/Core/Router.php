@@ -51,7 +51,7 @@ class Router {
         }
         // echo $sAction;
 
-        echo $controllerName = Text::toCamelCase($sController).'Controller';
+        $controllerName = Text::toCamelCase($sController).'Controller';
 
         $controllerFile = CTRL_DIR.'/'.$controllerName.'.php';
         

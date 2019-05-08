@@ -192,6 +192,7 @@ class IndexView extends View {
 
     protected function _handleDataset($aRows) {
         // table configuration
+        // echo 'path: ' . dirname(ROOT_DIR) . '/XhtmlTable/Aya/Yaml/AyaYamlLoader.php';
         require_once dirname(ROOT_DIR) . '/XhtmlTable/Aya/Yaml/AyaYamlLoader.php';
         Time::stop('yaml-loader');
         

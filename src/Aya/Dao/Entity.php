@@ -9,46 +9,46 @@ use Aya\Exception\MissingEntityException;
 
 class Entity {
     
-    protected $_mId;
+    protected $_id;
     
-    protected $_sIdLabel;
+    protected $_idLabel;
     
-    protected $_sTable;
+    protected $_table;
     
-    protected $_bLoaded;
+    protected $_loaded;
     
     protected $_db;
     
     // values in db
-    protected $_aDbFields = [];
+    protected $_dbFields = [];
     
     // protected $_bModified;
 
     // values set manually
-    protected $_aQueryFields;
+    protected $_queryFields;
     
-    protected $_sQuery;
+    protected $_query;
 
-    protected $_sSelect;
+    protected $_select;
 
-    protected $_sWhere;
+    protected $_where;
     
     public function __construct($identifier = 0, $idLabel = null) {
-        // $this->_sTable = strtolower(get_class($this)) == 'entity' ? $idLabel : null;
-        $this->_sTable = $idLabel;
+        // $this->_table = strtolower(get_class($this)) == 'entity' ? $idLabel : null;
+        $this->_table = $idLabel;
         $this->_db = Db::getInstance();
 
-        // echo $this->_sTable;
+        // echo $this->_table;
 
-        $this->_mId = $identifier;
+        $this->_id = $identifier;
         if (is_numeric($identifier)) {
-            $this->_sIdLabel = 'id_'.$this->_sTable;
+            $this->_idLabel = 'id_'.$this->_table;
             if ($identifier > 0) {
                 $this->load();
             }
         }
         if ($idLabel) {
-            $this->_sIdLabel = $idLabel;
+            $this->_idLabel = $idLabel;
         }
     }
     
@@ -60,130 +60,136 @@ class Entity {
     //     }
     // }
 
-    public function query($sQuery) {
-        $this->_sQuery = $sQuery;
+    public function query($query) {
+        $this->_query = $query;
     }
 
     public function select($sSelect) {
         if (is_array($m))
-        $this->_sSelect = $sSelect;
+        $this->_select = $sSelect;
     }
 
-    public function where($sWhere) {
-        $this->_sWhere = $sWhere;
+    public function where($where) {
+        $this->_where = $where;
     }
 
     public function load() {
-        $this->_sSelect = '*';
-        $this->_sWhere = $this->_sIdLabel.'="'.$this->_mId.'"';
-        if (!$this->_sQuery) {
-            $this->_sQuery = 'SELECT '.$this->_sSelect.' FROM '.$this->_sTable.' WHERE '.$this->_sWhere.'';
+        $this->_select = '*';
+        $this->_where = $this->_idLabel.'="'.$this->_id.'"';
+        if (!$this->_query) {
+            $this->_query = 'SELECT '.$this->_select.' FROM '.$this->_table.' WHERE '.$this->_where.'';
         }
 
-        // Debug::show($this->_sQuery);
+        // Debug::show($this->_query);
 
         // sql cache
         $sqlPath = CACHE_DIR . '/sql';
         if (!file_exists($sqlPath)) {
             mkdir($sqlPath);
         }
-        $sqlHash = md5($this->_sQuery);
+        $sqlHash = md5($this->_query);
         $sqlFile = $sqlPath.'/'.$sqlHash;
-        if (file_exists($sqlFile)) {
+        if (CACHE_SQL && file_exists($sqlFile)) {
             // echo 'from cache';
-            $this->_aDbFields = unserialize(file_get_contents($sqlFile));
+            $this->_dbFields = unserialize(file_get_contents($sqlFile));
         } else {
             // using unicode charset
             $this->_db->execute("SET NAMES utf8");
 
             // echo 'from db';
-            $this->_aDbFields = $this->_db->getRow($this->_sQuery);
+            $this->_dbFields = $this->_db->getRow($this->_query);
 
-            file_put_contents($sqlFile, serialize($this->_aDbFields));
+            file_put_contents($sqlFile, serialize($this->_dbFields));
         }
 
         // $this->_db->execute("SET NAMES utf8");
 
-        // echo $this->_sQuery;
+        // echo $this->_query;
+        // echo 'from db';
+        // $this->_dbFields = $this->_db->getRow($this->_query);
+        // var_dump($this->_dbFields);
         
-        // $this->_aDbFields = $this->_db->getRow($this->_sQuery);
-        $this->_bLoaded = 1;
+        // $this->_dbFields = $this->_db->getRow($this->_query);
+        $this->_loaded = 1;
 
         // $this->_bModified = 0;
     }
 
-    public function hasField($sField) {
-        if ($this->_bLoaded == 0) {
+    public function hasField($field) {
+        if ($this->_loaded == 0) {
             $this->load();
         }
-        if (isset($this->_aDbFields[$sField])) {
+        if (isset($this->_dbFields[$field])) {
             return true;
         } else {
             return false;
         }
     }
 
-    public function getField($sField) {
-        if ($this->_bLoaded == 0) {
+    public function getField($field) {
+        if ($this->_loaded == 0) {
             $this->load();
         }
-        if (isset($this->_aDbFields[$sField])) {
-            return $this->_aDbFields[$sField];
+        if (isset($this->_dbFields[$field])) {
+            return $this->_dbFields[$field];
         } else {
             return false;
         }
     }
 
-    public function getFields($bReturnObjectId = false) {
-        if($this->_bLoaded == 0) {
+    public function getFields($returnObjectId = false) {
+        if($this->_loaded == 0) {
             $this->load();
         }
-        if ($bReturnObjectId) {
-            return array_merge($this->_aDbFields, array('id' => $this->_mId));
+        // print_r($this->_dbFields);
+        if ($returnObjectId) {
+            return array_merge($this->_dbFields, array('id' => $this->_id));
         }
         // if entity created with query identifier is 0;
-        if (!$this->_mId && isset($this->_aDbFields['id_'.$this->_sIdLabel.''])) {
-            $this->_mId = $this->_aDbFields['id_'.$this->_sIdLabel.''];
+        if (!$this->_id && isset($this->_dbFields['id_'.$this->_idLabel.''])) {
+            $this->_id = $this->_dbFields['id_'.$this->_idLabel.''];
         }
-        if (empty($this->_aDbFields)) {
+        // what is really missing entity
+        // if ($this->_dbFields === '') {
+        if (empty($this->_dbFields)) {
             throw new MissingEntityException();
         }
 
-        // Debug::show($this->_aDbFields);
+        // Debug::show($this->_dbFields);
 
-        return $this->_aDbFields;
+        return $this->_dbFields;
     }
 
     public function getId() {
-        return $this->_mId;
+        return $this->_id;
     }
 
     public function getQuery() {
-        return $this->_sQuery;
+        return $this->_query;
     }
 
-    public function setField($sField, $mValue) {
-        // if (isset($this->_aDbFields[$sField])) {
+    public function setField($field, $mValue) {
+        // if (isset($this->_dbFields[$field])) {
         //     if (isset($mValue)) {
-        //         if ($this->_aDbFields[$sField] != $mValue) {
-        //             $this->_aDbFields[$sField] = $mValue;
-        //             // $this->_aModifiedFields[$sField] = 1;
+        //         if ($this->_dbFields[$field] != $mValue) {
+        //             $this->_dbFields[$field] = $mValue;
+        //             // $this->_aModifiedFields[$field] = 1;
         //             // $this->_bModified = 1;
         //         }
         //     }
         // } else {
-        //     $this->_aQueryFields[$sField] = $mValue;
+        //     $this->_queryFields[$field] = $mValue;
         // }
-        $this->_aQueryFields[$sField] = $mValue;
+        $this->_queryFields[$field] = $mValue;
     }
 
     public function setFields($aFields) {
-        $this->_aQueryFields = $aFields;
+        $this->_queryFields = $aFields;
 
-        // foreach ($this->_aDbFields as $key => $val) {
+        // foreach ($this->_dbFields as $key => $val) {
         //     if (isset($aFields[$key])) {
         //         if ($aFields[$key] != $val) {
-        //             $this->_aDbFields[$key] = $aFields[$key];
+        //             $this->_dbFields[$key] = $aFields[$key];
         //             // $this->_aModifiedFields[$key] = 1;
         //             // $this->_bModified = 1;
         //         }
@@ -191,32 +197,32 @@ class Entity {
         // }
     }
 
-    public function unsetField($sField) {
-        if (isset($this->_aQueryFields[$sField])) {
-            unset($this->_aQueryFields[$sField]);
+    public function unsetField($field) {
+        if (isset($this->_queryFields[$field])) {
+            unset($this->_queryFields[$field]);
         }
     }
 
-    public function increaseField($field) {
-        $sql = 'UPDATE '.$this->_sTable.' SET `'.$field.'` = `'.$field.'` + 1 WHERE id_'.$this->_sIdLabel.'="'.$this->_mId.'"';
-        $this->_sQuery = $sql;
+    public function increaseField($field, $increment = 1) {
+        $sql = 'UPDATE '.$this->_table.' SET `'.$field.'` = `'.$field.'` + '.$increment.' WHERE id_'.$this->_idLabel.'="'.$this->_id.'"';
+        $this->_query = $sql;
         
-        if ($this->_db->execute($this->_sQuery)) {
+        if ($this->_db->execute($this->_query)) {
             return true;
         }
     }
 
-    public function insert($bSetNamesUtf8 = false) {
-        // print_r($this->_aQueryFields);
-        $q = 'INSERT INTO '.$this->_sTable.'(';
-        foreach ($this->_aQueryFields as $key => $val) {
+    public function insert($setNamesUtf8 = false) {
+        // print_r($this->_queryFields);
+        $q = 'INSERT INTO '.$this->_table.'(';
+        foreach ($this->_queryFields as $key => $val) {
             $q .= '`'.$key.'`, ';
         }
         $q = substr($q, 0, -2);
         $q .= ') VALUES (';
-        foreach ($this->_aQueryFields as $key => $val) {
+        foreach ($this->_queryFields as $key => $val) {
             // hack for inserting new record with null as PK
-            if ($key == ('id_' . $this->_sIdLabel )) {
+            if ($key == ('id_' . $this->_idLabel )) {
                 $q .= 'NULL, ';
             } else {
                 // echo $key.':'.$val;
@@ -232,47 +238,53 @@ class Entity {
         }
         $q = substr($q, 0, -2);
         $q .= ');';
-        $this->_sQuery = $q;
+        $this->_query = $q;
         // echo $q;
+        // print_r($this->_queryFields);
 
-        Debug::show($this->_sQuery);
+        Debug::show($this->_query);
 
-        if ($bSetNamesUtf8) {
+        if ($setNamesUtf8) {
             $this->_db->execute("SET NAMES utf8");
         }
         
         if ($statement = $this->_db->execute($q)) {
-            // return $this->_mId = mysql_insert_id();
+            // return $this->_id = mysql_insert_id();
             //$result = $statement->fetch(PDO::FETCH_ASSOC);
             
-            return $this->_mId = $this->_db->pdo()->lastInsertId();
+            return $this->_id = $this->_db->pdo()->lastInsertId();
         } else {
             return false;
         }
     }
     
-    public function update() {
-        $q = 'UPDATE '.$this->_sTable.' SET ';
-        foreach ($this->_aQueryFields as $key => $val) {
-            if ($val == '__NULL__') {
+    public function update($increments = false) {
+        $q = 'UPDATE '.$this->_table.' SET ';
+        // print_r($this->_queryFields);
+        foreach ($this->_queryFields as $key => $val) {
+            if ($val === '__NULL__') {
                 $q .= '`'.$key.'`=NULL, ';
             } else {
-                $q .= '`'.$key.'`="'.addslashes($val).'", ';
+                $q .= $increments ? '`'.$key.'`+'.$val.', ' : '`'.$key.'`="'.addslashes($val).'", ';
             }
         }
         $q = substr($q, 0, -2);
-        $q .= ' WHERE id_'.$this->_sIdLabel.'="'.$this->_mId.'"';
-        $this->_sQuery = $q;
-        // echo $this->_sQuery;
+        if ($this->_where) {
+            $q .= ' WHERE '.$this->_where;
+        } else {
+            $q .= ' WHERE id_'.$this->_idLabel.'="'.$this->_id.'"';
+        }
+        $this->_query = $q;
+        // echo $this->_query;
 
-        if ($this->_db->execute($this->_sQuery)) {
+        if ($this->_db->execute($this->_query)) {
             return true;
         }
         return false;
     }
 
     public function delete() {
-        if ($this->_db->execute('DELETE FROM '.$this->_sTable.' WHERE '.$this->_sWhere.'')) {
+        if ($this->_db->execute('DELETE FROM '.$this->_table.' WHERE '.$this->_where.'')) {
             return true;
         } else {
             return false;

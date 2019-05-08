@@ -71,6 +71,11 @@ class CrudController extends Controller {
         
         $oEntity->setFields($aPost['dataset']);
 
+        // tournaments don't have creation_date
+        if ($this->_ctrlName == 'cup') {
+            $oEntity->unsetField('creation_date');
+        }
+
         $aPossibleNameKeys = array('title', 'name');
         foreach ($aPossibleNameKeys as $key) {
             if (isset($aPost['dataset'][$key])) {
@@ -90,7 +95,7 @@ class CrudController extends Controller {
 
         // no creation date
         // TODO or creation date invalid
-        if (empty($aPost['dataset']['creation_date'])) {
+        if (empty($aPost['dataset']['creation_date']) && $this->_ctrlName != 'cup') {
             $oEntity->setField('creation_date', date('Y-m-d H:i:s'));
         }
         // if mod_date comes somehow
