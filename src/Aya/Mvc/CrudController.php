@@ -23,10 +23,10 @@ class CrudController extends Controller {
 
 		// decide what to do with action
 		if (isset($_POST['action'])) {
-			$sAction = key($_POST['action']).'Action';
+			$action = key($_POST['action']).'Action';
 
 			// if (isset($_POST['ids'])) {
-				$this->$sAction();
+				$this->$action();
 			// }
         }
 
@@ -63,58 +63,58 @@ class CrudController extends Controller {
     }
     
     public function insertAction() {
-        $mId = 0;
+        $id = 0;
 
-        $aPost = $this->beforeInsert();
+        $post = $this->beforeInsert();
 
-        $oEntity = Dao::entity($this->_ctrlName, $mId);
+        $entity = Dao::entity($this->_ctrlName, $id);
         
-        $oEntity->setFields($aPost['dataset']);
+        $entity->setFields($post['dataset']);
 
         // tournaments don't have creation_date
         if ($this->_ctrlName == 'cup') {
-            $oEntity->unsetField('creation_date');
+            $entity->unsetField('creation_date');
         }
 
-        $aPossibleNameKeys = array('title', 'name');
-        foreach ($aPossibleNameKeys as $key) {
-            if (isset($aPost['dataset'][$key])) {
-                $sName = $aPost['dataset'][$key];
+        $possibleNameKeys = array('title', 'name');
+        foreach ($possibleNameKeys as $key) {
+            if (isset($post['dataset'][$key])) {
+                $name = $post['dataset'][$key];
                 break;
             }
         }
-        // print_r($aPost['dataset']);
+        // print_r($post['dataset']);
 
         // slug by used name if empty or changed name
-        if (isset($sName)
-            && isset($aPost['dataset']['slug'])
-            && (empty($aPost['dataset']['slug'])
-            || $aPost['dataset']['slug'] != Text::slugify($sName))) {
-			$oEntity->setField('slug', Text::slugify($sName));
+        if (isset($name)
+            && isset($post['dataset']['slug'])
+            && (empty($post['dataset']['slug'])
+            || $post['dataset']['slug'] != Text::slugify($name))) {
+			$entity->setField('slug', Text::slugify($name));
 		}
 
         // no creation date
         // TODO or creation date invalid
-        if (empty($aPost['dataset']['creation_date']) && $this->_ctrlName != 'cup') {
-            $oEntity->setField('creation_date', date('Y-m-d H:i:s'));
+        if (empty($post['dataset']['creation_date']) && $this->_ctrlName != 'cup') {
+            $entity->setField('creation_date', date('Y-m-d H:i:s'));
         }
         // if mod_date comes somehow
-        if (empty($aPost['dataset']['modification_date'])) {
-            $oEntity->unsetField('modification_date');
+        if (empty($post['dataset']['modification_date'])) {
+            $entity->unsetField('modification_date');
         }
         
-        if ($mId = $oEntity->insert(true)) {
-            $this->afterInsert($mId);
+        if ($id = $entity->insert(true)) {
+            $this->afterInsert($id);
             // clear cache
             $sSqlCacheFile = CACHE_DIR . '/sql/collection/'.$this->_ctrlName.'-'.$this->_actionName.'';
 
-            $this->raiseInfo('Wpis '.(isset($sName) ? '<strong>'.$sName.'</strong>' : '').' został utworzony.');
+            $this->raiseInfo('Wpis '.(isset($name) ? '<strong>'.$name.'</strong>' : '').' został utworzony.');
 
-            ChangeLog::add('create', $this->_ctrlName, $mId);
+            ChangeLog::add('create', $this->_ctrlName, $id);
 
-            // $this->addHistoryLog('create', $this->_ctrlName, $mId);
+            // $this->addHistoryLog('create', $this->_ctrlName, $id);
 
-            // $aStreamItem = $this->prepareStreamItem($mId, $aPost);
+            // $aStreamItem = $this->prepareStreamItem($id, $post);
             // $this->addToStream($aStreamItem);
 
             $this->redirect('index');
@@ -127,72 +127,72 @@ class CrudController extends Controller {
     }
     
     public function updateAction() {
-        $mId = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
         $mButton = isset($_POST['button']) ? $_POST['button']: null;
         
-        $oEntity = Dao::entity($this->_ctrlName, $mId, 'id_'.$this->_ctrlName);
-        $oEntity->setFields($_POST['dataset']);
+        $entity = Dao::entity($this->_ctrlName, $id, 'id_'.$this->_ctrlName);
+        $entity->setFields($_POST['dataset']);
         
         // lock handling
-        if (Lock::exists($this->_ctrlName, $mId)) {
-            $sLock = Lock::get($this->_ctrlName, $mId);
+        if (Lock::exists($this->_ctrlName, $id)) {
+            $sLock = Lock::get($this->_ctrlName, $id);
             $aLockParts = explode(':', $sLock);
             if ($aLockParts[0] != $_SESSION['user']['id']) {
                 $this->_renderer->assign('aLock', array('id' => $aLockParts[0], 'name' => $aLockParts[1]));
             }
         } else {
-            Lock::set($this->_ctrlName, $mId, $_SESSION['user']);
+            Lock::set($this->_ctrlName, $id, $_SESSION['user']);
         }
 
-        $aPossibleNameKeys = array('title', 'name');
-        foreach ($aPossibleNameKeys as $key) {
+        $possibleNameKeys = array('title', 'name');
+        foreach ($possibleNameKeys as $key) {
             if (isset($_POST['dataset'][$key])) {
-                $sName = $_POST['dataset'][$key];
+                $name = $_POST['dataset'][$key];
                 break;
             }
         }
 
         // slug by used name if empty or changed name
-		if (isset($_POST['dataset']['slug']) && (empty($_POST['dataset']['slug']) || $_POST['dataset']['slug'] != Text::slugify($sName))) {
-			$oEntity->setField('slug', Text::slugify($sName));
+		if (isset($_POST['dataset']['slug']) && (empty($_POST['dataset']['slug']) || $_POST['dataset']['slug'] != Text::slugify($name))) {
+			$entity->setField('slug', Text::slugify($name));
 		}
 
         if (isset($_POST['dataset']['modification_date'])) {
             if ($_POST['dataset']['modification_date'] == '') {
-                $oEntity->setField('modification_date', date('Y-m-d H:i:s'));
+                $entity->setField('modification_date', date('Y-m-d H:i:s'));
             }
         }
 
         // depending on button pressed
 		if ($mButton == 'publish') {
-			$oEntity->setField('visible', 1);
+			$entity->setField('visible', 1);
 		}
 		// if ($mButton == 'unpublish') {
-		// 	$oEntity->setField('visible', 0);
+		// 	$entity->setField('visible', 0);
 		// }
 		if ($mButton == 'delete') {
-			$oEntity->setField('deleted', 1);
+			$entity->setField('deleted', 1);
 		}
 		if ($mButton == 'undelete') {
-			$oEntity->setField('deleted', 0);
+			$entity->setField('deleted', 0);
 		}
         
-        if ($oEntity->update()) {
-            $sEditUrl = BASE_URL.'/'.$this->_ctrlName.'/'.$mId;
-            if (isset($sName)) {
-                $this->raiseInfo('Wpis '.(isset($sName) ? '<strong>'.$sName.'</strong>' : '').' został zmieniony. <a href="'.$sEditUrl.'">Edytuj</a> ponownie.');
+        if ($entity->update()) {
+            $editUrl = BASE_URL.'/'.$this->_ctrlName.'/'.$id;
+            if (isset($name)) {
+                $this->raiseInfo('Wpis '.(isset($name) ? '<strong>'.$name.'</strong>' : '').' został zmieniony. <a href="'.$editUrl.'">Edytuj</a> ponownie.');
             } else {
-                $this->raiseInfo('Wpis został zmieniony. <a href="'.$sEditUrl.'">Edytuj</a> ponownie.');
+                $this->raiseInfo('Wpis został zmieniony. <a href="'.$editUrl.'">Edytuj</a> ponownie.');
             }
 
-            // $this->addHistoryLog('update', $this->_ctrlName, $mId);
+            // $this->addHistoryLog('update', $this->_ctrlName, $id);
 
-            // $aStreamItem = $this->prepareStreamItem($mId, $_POST);
+            // $aStreamItem = $this->prepareStreamItem($id, $_POST);
             // $this->addToStream($aStreamItem);
 
-            ChangeLog::add('update', $this->_ctrlName, $mId);
+            ChangeLog::add('update', $this->_ctrlName, $id);
 
-            $this->afterUpdate($mId);
+            $this->afterUpdate($id);
             
             // $this->actionForward('index', $this->_ctrlName, true);
         } else {
@@ -212,27 +212,27 @@ class CrudController extends Controller {
         if (isset($aIds)) {
             $aNames = array();
             foreach ($aIds as $id) {
-                $oEntity = Dao::entity($this->_ctrlName, $id, 'id_'.$this->_ctrlName);
+                $entity = Dao::entity($this->_ctrlName, $id, 'id_'.$this->_ctrlName);
 
-                $aPossibleNameKeys = array('title', 'name');
-                foreach ($aPossibleNameKeys as $key) {
-                    if ($oEntity->hasField($key)) {
-                        $sName = $oEntity->getField($key);
+                $possibleNameKeys = array('title', 'name');
+                foreach ($possibleNameKeys as $key) {
+                    if ($entity->hasField($key)) {
+                        $name = $entity->getField($key);
                     } else {
-                        $sName = $id;
+                        $name = $id;
                     }
                 }
 
-                $oEntity->setField('deleted', '1');
+                $entity->setField('deleted', '1');
 
-                $this->beforeDelete($sName);
+                $this->beforeDelete($name);
                 
-                if ($oEntity->update()) {
+                if ($entity->update()) {
                     // $this->addHistoryLog('delete', $this->_ctrlName, $id);
                     ChangeLog::add('update', $this->_ctrlName, $id);
-                    $aNames[] = $sName;
+                    $aNames[] = $name;
 
-                    $this->afterDelete($sName);
+                    $this->afterDelete($name);
                 }
             }
 
@@ -263,24 +263,24 @@ class CrudController extends Controller {
         if (isset($aIds)) {
             $aNames = array();
             foreach ($aIds as $id) {
-                $oEntity = Dao::entity($this->_ctrlName, $id, 'id_'.$this->_ctrlName);
+                $entity = Dao::entity($this->_ctrlName, $id, 'id_'.$this->_ctrlName);
 
-                $aPossibleNameKeys = array('title', 'name');
-                foreach ($aPossibleNameKeys as $key) {
-                    if ($oEntity->hasField($key)) {
-                        $sName = $oEntity->getField($key);
+                $possibleNameKeys = array('title', 'name');
+                foreach ($possibleNameKeys as $key) {
+                    if ($entity->hasField($key)) {
+                        $name = $entity->getField($key);
                     } else {
-                        $sName = $id;
+                        $name = $id;
                     }
                 }
-                $this->beforeRemove($sName);
+                $this->beforeRemove($name);
                 
-                if ($oEntity->delete()) {
+                if ($entity->delete()) {
                     // $this->addHistoryLog('remove', $this->_ctrlName, $id);
                     ChangeLog::add('delete', $this->_ctrlName, $id);
-                    $aNames[] = $sName;
+                    $aNames[] = $name;
 
-                    $this->afterRemove($sName);
+                    $this->afterRemove($name);
                 }
             }
 
@@ -305,19 +305,19 @@ class CrudController extends Controller {
         return $_POST;
     }
 
-    public function afterInsert($mId) {}
+    public function afterInsert($id) {}
 
     public function beforeUpdate() {}
 
-    public function afterUpdate($mId) {}
+    public function afterUpdate($id) {}
 
-    public function beforeDelete($sName) {}
+    public function beforeDelete($name) {}
 
-	public function afterDelete($sName) {}
+	public function afterDelete($name) {}
 
-    public function beforeRemove($sName) {}
+    public function beforeRemove($name) {}
 
-	public function afterRemove($sName) {}
+	public function afterRemove($name) {}
 
     public function fetchTemplateAction() {
         $sPath = isset($_GET['path']) ? str_replace(',', '/', strip_tags($_GET['path'])) : null;
@@ -332,39 +332,39 @@ class CrudController extends Controller {
     // private methods
     protected function _changeStatusField($sField, $mValue) {
         // TODO validate
-        $mId = $_GET['id'];
+        $id = $_GET['id'];
         
-        $oEntity = Dao::entity($this->_ctrlName, $mId, 'id_'.$this->_ctrlName);
+        $entity = Dao::entity($this->_ctrlName, $id, 'id_'.$this->_ctrlName);
         
-        $oEntity->setField($sField, $mValue);
+        $entity->setField($sField, $mValue);
 
-        $sName = $mId;
-        $aPossibleNameKeys = array('title', 'name');
-        foreach ($aPossibleNameKeys as $key) {
+        $name = $id;
+        $possibleNameKeys = array('title', 'name');
+        foreach ($possibleNameKeys as $key) {
             if (isset($_POST['dataset'][$key])) {
-                $sName = $_POST['dataset'][$key];
+                $name = $_POST['dataset'][$key];
                 break;
             }
         }
 
-        // $this->beforeChange($mId);
-        // print_r($oEntity);
+        // $this->beforeChange($id);
+        // print_r($entity);
         // echo '.....................';
-        // echo $oEntity->getQuery();
+        // echo $entity->getQuery();
         
-        if ($oEntity->update()) {
-            // $this->afterUpdate($mId);
+        if ($entity->update()) {
+            // $this->afterUpdate($id);
 
-            $sEditUrl = BASE_URL.'/'.$this->_ctrlName.'/'.$mId;
-            if (isset($sName)) {
-                $this->raiseInfo('Wpis '.(isset($sName) ? '<strong>'.$sName.'</strong>' : '').' został zmieniony. <a href="'.$sEditUrl.'">Edytuj</a> ponownie.');
+            $editUrl = BASE_URL.'/'.$this->_ctrlName.'/'.$id;
+            if (isset($name)) {
+                $this->raiseInfo('Wpis '.(isset($name) ? '<strong>'.$name.'</strong>' : '').' został zmieniony. <a href="'.$editUrl.'">Edytuj</a> ponownie.');
             } else {
-                $this->raiseInfo('Wpis został zmieniony. <a href="'.$sEditUrl.'">Edytuj</a> ponownie.');
+                $this->raiseInfo('Wpis został zmieniony. <a href="'.$editUrl.'">Edytuj</a> ponownie.');
             }
 
-            ChangeLog::add('update', $this->_ctrlName, $mId);
+            ChangeLog::add('update', $this->_ctrlName, $id);
 
-            // $this->afterChange($mId);
+            // $this->afterChange($id);
             
             $this->actionForward('index', $this->_ctrlName, true);
         } else {

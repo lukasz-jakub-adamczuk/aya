@@ -274,6 +274,19 @@ class IndexView extends View {
             );
             $oPaginator->setOptions($aOptions);
         }
+        if (strpos(THEME_DIR, 'sb-admin-2') !== false) {
+            $aOptions = array(
+                'outer-wrapper' => 'nav',
+                'inner-wrapper' => 'ul',
+                'inner-wrapper-class' => 'pagination justify-content-end',
+                'page-item' => 'li',
+                'page-item-class' => 'paginate_button page-item',
+                'page-link-class' => 'page-link',
+                'active-element' => 'li',
+                'active-element-class' => 'active'
+            );
+            $oPaginator->setOptions($aOptions);
+        }
 
         $sPaginator = $oPaginator->configure('archive', BASE_URL.'/'.$_GET['ctrl'])->generate();
         $this->_renderer->assign('sPaginator', $sPaginator);

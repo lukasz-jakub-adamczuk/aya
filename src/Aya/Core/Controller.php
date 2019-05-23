@@ -196,7 +196,7 @@ abstract class Controller {
                     try {
                         $this->_view->run();
                     } catch (MissingEntityException $e) {
-                        $this->setTemplateName('404');
+                        // $this->setTemplateName('404');
                         Logger::logStandardRequest('404');
                         // $this->_renderer->assign('content', '404');
                     } catch (MissingControllerException $e) {

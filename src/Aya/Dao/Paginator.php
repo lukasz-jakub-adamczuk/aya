@@ -180,7 +180,7 @@ class Paginator {
             }
 
                         
-            $this->_pagination = preg_replace('/[%]+/', '<li><span class="separator">...</span></li>', $this->_pagination);
+            $this->_pagination = preg_replace('/[%]+/', '<li'.($this->_config['page-item-class'] ? ' class="'.$this->_config['page-item-class'].'"' : '').'><span class="separator page-link">...</span></li>', $this->_pagination);
             $this->_pagination .= '</'.$this->_config['inner-wrapper'].'>';
             $this->_pagination .= ($this->_config['outer-wrapper'] ? '</'.$this->_config['outer-wrapper'].'>' : '');
             return $this->_pagination;
